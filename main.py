@@ -7,6 +7,12 @@ import traceback
 
 class FokkerPlanckSolver:
     def __init__(self):
+        '''
+
+        timesteps (Nt): actual number of timesteps
+        dt: timestep (conversion into real units discussed)
+
+        '''
 
         # Input file parameters
         self.timesteps = 100000
@@ -64,13 +70,19 @@ class FokkerPlanckSolver:
         Args:
             N: scalar
                 actual number of segments
-            profile_type: type of profile ('linear', ...)
+
+            profile_type: str
+                type of profile ('linear', ...)
+
+            z: scalar
+                actual length of the field (related to dt and the mobility constant)
 
         """
         N = int(N)
+        z = N
 
         with open("new_input.txt", "w", encoding="UTF-8") as fin:
-            fin.write(f'{N} {N}\n')
+            fin.write(f'{N} {z}\n')
             fin.write(
                 f"{self.timesteps} {self.dt} {self.timedisplay} {self.intdisplay}\n")
 
