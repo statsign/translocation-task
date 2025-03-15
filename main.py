@@ -170,7 +170,7 @@ class FokkerPlanckSolver:
                     pTimeN = np.append(pTimeN, float(l[1]))
                     pTime0 = np.append(pTime0, float(l[2]))
 
-                ptotal = pTime0 + pTimeN
+                ptotal = pTime0 * results['failure_rate'] + pTimeN * results ['success_rate']
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)
