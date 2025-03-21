@@ -59,6 +59,10 @@ class FokkerPlanckSolver:
         if profile_type == "linear":
             slope = params.get('slope', -0.01)
             return slope * i
+        
+        elif profile_type == "quadratic":
+            a = params.get('a', -0.0001)
+            return a * i * i 
 
         else:
             return -i/100  # Default linear profile
@@ -369,6 +373,12 @@ class BayesOptimizer:
                 print(f"Iteration: {(i + 1) * 5}")
                 print(f"Best N value: {best_N}")
                 print(f"Objective function value: {opt_loss}")
+
+                 # Check if the best N is the reference N
+                if int(best_N) == self.N_ref:
+                    print(f"Optimization stopped: Best N={best_N} equals N_ref={self.N_ref}")
+                    best_result = self.reference_model
+                    break
 
                 best_result = self.solver.run_fp(best_N)
 
