@@ -403,7 +403,7 @@ class BayesOptimizer:
 
 
 # Example usage
-if __name__ == "__main__":
+if __name__ == "__main__": # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
 
