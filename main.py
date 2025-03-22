@@ -58,11 +58,14 @@ class FokkerPlanckSolver:
 
         if profile_type == "linear":
             slope = params.get('slope', -0.01)
-            return slope * i
-        
+            c = params.get('c', 0)
+            return slope * i + c
+
         elif profile_type == "quadratic":
             a = params.get('a', -0.0001)
-            return a * i * i 
+            b = params.get('b', 0)
+            c = params.get('c', 0)
+            return a * i ** 2 + b * i + c
 
         else:
             return -i/100  # Default linear profile
@@ -174,7 +177,8 @@ class FokkerPlanckSolver:
                     pTimeN = np.append(pTimeN, float(l[1]))
                     pTime0 = np.append(pTime0, float(l[2]))
 
-                ptotal = pTime0 * results['failure_rate'] + pTimeN * results ['success_rate']
+                ptotal = pTime0 * results['failure_rate'] + \
+                    pTimeN * results['success_rate']
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)
@@ -190,7 +194,7 @@ class FokkerPlanckSolver:
     def plot_profile(self, N, profile_type="linear", params=None):
         """
         Plot generated profile
-        
+
         Args:
             profile_type: type of profile ('linear', 'quadratic')
 
@@ -380,9 +384,10 @@ class BayesOptimizer:
                 print(f"Best N value: {best_N}")
                 print(f"Objective function value: {opt_loss}")
 
-                 # Check if the best N is the reference N
+                # Check if the best N is the reference N
                 if int(best_N) == self.N_ref:
-                    print(f"Optimization stopped: Best N={best_N} equals N_ref={self.N_ref}")
+                    print(
+                        f"Optimization stopped: Best N={best_N} equals N_ref={self.N_ref}")
                     best_result = self.reference_model
                     break
 
@@ -409,7 +414,7 @@ class BayesOptimizer:
 
 
 # Example usage
-if __name__ == "__main__": # Preventing unwanted code execution during import
+if __name__ == "__main__":  # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
 
