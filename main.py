@@ -76,7 +76,7 @@ class FokkerPlanckSolver:
                 actual number of segments
 
             profile_type: str
-                type of profile ('linear', ...)
+                type of profile ('linear', 'quadratic')
 
             z: scalar
                 actual length of the field (related to dt and the mobility constant)
@@ -103,7 +103,7 @@ class FokkerPlanckSolver:
         Args:
             N: scalar
                 actual number of segments
-            profile_type: type of profile ('linear', ...)
+            profile_type: type of profile ('linear', 'quadratic')
 
         Returns:
             Dictionary with simulation results
@@ -188,7 +188,13 @@ class FokkerPlanckSolver:
             print(f"Error reading output file: {e}")
 
     def plot_profile(self, N, profile_type="linear", params=None):
-        """Plot the generated profile"""
+        """
+        Plot generated profile
+        
+        Args:
+            profile_type: type of profile ('linear', 'quadratic')
+
+        """
         self.gen_profile(N, profile_type, params)
 
         zn = []
