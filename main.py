@@ -117,7 +117,7 @@ class FokkerPlanckSolver:
 
         # Run Fortran program
         try:
-            process = subprocess.run(
+            subprocess.run(
                 ["./output"],
                 capture_output=True,
                 text=True
