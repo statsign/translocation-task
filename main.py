@@ -225,7 +225,7 @@ class FokkerPlanckSolver:
             ref: Optional reference result to compare with
         """
         if not result:
-            print("Нет данных для отображения")
+            print("No data to display")
             return
 
         fig, ax = plt.subplots()
