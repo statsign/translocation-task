@@ -2,3 +2,6 @@
 *.txt
 *.exe
 .venv/
+*.npz
+images/
+*.png
