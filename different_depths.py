@@ -56,19 +56,27 @@ class CompareProfiles:
 
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
+        folder_path = "data"
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
             self.solver.gen_profile(
                 N, profile['type'], profile['params'], profile['name'])
             filename = profile["name"] + f"_{N}" + "_in" + '.npz'
-            with np.load(filename) as data:
-                zn = data['dt']
-                F = data['F']
-            axes[i].plot(zn, F, label=f"{profile['label']}")
-            axes[i].legend(loc='best')
-        filename = f"profiles_{N}"
-        path = os.path.join("images", filename)
-        plt.savefig(path)
+            data_path = os.path.join(folder_path, filename)  
+    
+            try:
+                with np.load(data_path) as data:
+                    zn = data['dt']
+                    F = data['F']
+            
+                axes[i].plot(zn, F, label=f"{profile['label']}")
+                axes[i].legend(loc='best')
+
+            except FileNotFoundError:
+                print(f"File {filename} not found!")
+        imgname = f"profiles_{N}"
+        img_path = os.path.join("images", imgname)
+        plt.savefig(img_path)
         plt.close()
 
     def plot_multiple_pdf(self, results, N):
@@ -78,12 +86,12 @@ class CompareProfiles:
 
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
+        folder_path = "data"
         for i, result in enumerate(results):
             filename = result["name"] + f"_{N}" + '_out' + '.npz'
-            file_path = os.path.join(".", filename)
+            path = os.path.join(folder_path, filename)  
             try:
-                os.path.exists(file_path)
-                with np.load(filename) as data:
+                with np.load(path) as data:
 
                     dt = data['dt']
                     total = data['ptotal']
@@ -99,9 +107,9 @@ class CompareProfiles:
             except FileNotFoundError:
                 print(f"File {filename} not found!")
 
-        filename = f"pdfs_{results[0]['N']}"
-        path = os.path.join("images", filename)
-        plt.savefig(path)
+        imgname = f"pdfs_{results[0]['N']}"
+        img_path = os.path.join("images", imgname)
+        plt.savefig(img_path)
         plt.close()
 
 
@@ -268,9 +276,9 @@ class MultipleOptimizer:
                 ax.legend()
                 plt.tight_layout()
 
-                filename = f"current_opt_{profile['name']}_{best_N}"
-                path = os.path.join("images", filename)
-                plt.savefig(path)
+                imgname = f"current_opt_{profile['name']}_{best_N}"
+                img_path = os.path.join("images", imgname)
+                plt.savefig(img_path)
                 plt.close()
 
             results[profile_name] = {

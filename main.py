@@ -104,8 +104,13 @@ class FokkerPlanckSolver:
                 dt.append(i)
                 F.append(profile_value)
 
-            filename = name + f"_{N}" + "_in"  + '.npz'
-            np.savez(filename, dt=dt, F=F)
+            folder_path = "data"
+            filename = name + f"_{N}" + "_in" + '.npz'
+            full_path = os.path.join(folder_path, filename)
+
+            os.makedirs(folder_path, exist_ok=True)
+
+            np.savez(full_path, dt=dt, F=F)
 
         return
 
@@ -196,8 +201,12 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
-                filename = name + f"_{N}" +"_out" + '.npz'
-                path = os.path.join(".", filename)
+                folder_path = "data"
+                filename = name + f"_{N}" + "_out" + '.npz'
+
+                path = os.path.join(folder_path, filename)
+
+                os.makedirs(folder_path, exist_ok=True)
 
                 np.savez(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
                          pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
@@ -217,13 +226,15 @@ class FokkerPlanckSolver:
         """
         self.gen_profile(N, profile_type, params)
 
+        folder_path = "data"
         filename = name + f"_{N}" + '_in' + '.npz'
+        path = os.path.join(folder_path, filename)
 
         fig, ax = plt.subplots()
-
-        with np.load(filename) as data:
-            zn = data['dt']
-            F = data['F']
+        if os.path.exists(path):
+            with np.load(path) as data:
+                zn = data['dt']
+                F = data['F']
         ax.plot(zn, F)
 
         plt.show()
@@ -242,13 +253,16 @@ class FokkerPlanckSolver:
 
         fig, ax = plt.subplots()
 
+        folder_path = "data"
         filename = name + f"_{result['N']}" + "_out" + '.npz'
+        path = os.path.join(folder_path, filename)
 
-        with np.load(filename) as data:
-            dt = data['dt']
-            total = data['ptotal']
-            success = data['pTimeN']
-            failure = data['pTime0']
+        if os.path.exists(path):
+            with np.load(path) as data:
+                dt = data['dt']
+                total = data['ptotal']
+                success = data['pTimeN']
+                failure = data['pTime0']
 
         ax.plot(dt, total, 'b-', linewidth=2,
                 label=f"Total distribution (N={result['N']})")
