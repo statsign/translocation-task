@@ -5,3 +5,4 @@
 *.npz
 images/
 *.png
+__pycache__/
