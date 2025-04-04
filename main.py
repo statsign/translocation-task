@@ -308,20 +308,13 @@ class BayesOptimizer:
 
         difference = np.mean((current_value - target)**2)  # mse
 
-        # Log the result
-        iteration_info = {
-            'N': N_value,
-            'loss': float(difference)
-        }
-        self.history.append(iteration_info)
-
         # Write to log file
         with open("optimization_log.txt", "a") as f:
             f.write(f"N={N_value}, Loss={difference}\n")
 
         return np.array([[difference]])
 
-    def run_optimization(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
+    def run_bayesopt(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
         """
         Run Bayesian optimization
 
@@ -444,7 +437,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     solver.plot_pdf(optimizer.reference_model)
 
     # Run optimization
-    result = optimizer.run_optimization()
+    result = optimizer.run_bayesopt()
 
     if result:
         best_N = result['best_N']
