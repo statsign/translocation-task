@@ -48,7 +48,7 @@ class CompareProfiles:
                 result['profile'] = profile
                 results.append(result)
 
-        self.plot_multiple_pdf(results)
+        self.plot_multiple_pdf(results, N)
 
         return results
 
@@ -60,7 +60,7 @@ class CompareProfiles:
             # Generate the profile first
             self.solver.gen_profile(
                 N, profile['type'], profile['params'], profile['name'])
-            filename = profile["name"] + "_in" + '.npz'
+            filename = profile["name"] + f"_{N}" + "_in" + '.npz'
             with np.load(filename) as data:
                 zn = data['dt']
                 F = data['F']
@@ -71,7 +71,7 @@ class CompareProfiles:
         plt.savefig(path)
         plt.close()
 
-    def plot_multiple_pdf(self, results):
+    def plot_multiple_pdf(self, results, N):
         if not results:
             print("No data to display")
             return
@@ -79,7 +79,7 @@ class CompareProfiles:
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
         for i, result in enumerate(results):
-            filename = result["name"] + '_out' + '.npz'
+            filename = result["name"] + f"_{N}" + '_out' + '.npz'
             file_path = os.path.join(".", filename)
             try:
                 os.path.exists(file_path)

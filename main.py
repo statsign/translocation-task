@@ -104,7 +104,7 @@ class FokkerPlanckSolver:
                 dt.append(i)
                 F.append(profile_value)
 
-            filename = name + "_in" + '.npz'
+            filename = name + f"_{N}" + "_in"  + '.npz'
             np.savez(filename, dt=dt, F=F)
 
         return
@@ -140,7 +140,7 @@ class FokkerPlanckSolver:
             return None
 
         # Read results
-        result = self.read_pdf(name)
+        result = self.read_pdf(N, name)
         if result:
             result['N'] = int(N)
             result['profile_type'] = profile_type
@@ -148,7 +148,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def read_pdf(self, name="pr"):
+    def read_pdf(self, N, name="pr"):
         """
         Reads results from output file
 
@@ -196,7 +196,7 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
-                filename = name + "_out" + '.npz'
+                filename = name + f"_{N}" +"_out" + '.npz'
                 path = os.path.join(".", filename)
 
                 np.savez(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
@@ -217,7 +217,7 @@ class FokkerPlanckSolver:
         """
         self.gen_profile(N, profile_type, params)
 
-        filename = name + '_in' + '.npz'
+        filename = name + f"_{N}" + '_in' + '.npz'
 
         fig, ax = plt.subplots()
 
@@ -242,7 +242,7 @@ class FokkerPlanckSolver:
 
         fig, ax = plt.subplots()
 
-        filename = name + "_out" + '.npz'
+        filename = name + f"_{result['N']}" + "_out" + '.npz'
 
         with np.load(filename) as data:
             dt = data['dt']
@@ -455,7 +455,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         plt.legend()
         plt.show()
 
-npz_files = glob.glob('*.npz')
+    npz_files = glob.glob('*.npz')
 
-for file in npz_files:
-    os.remove(file)
+    for file in npz_files:
+        os.remove(file)
