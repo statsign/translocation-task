@@ -34,7 +34,7 @@ class FokkerPlanckSolver:
                 text=True
             )
             if compile_process.returncode == 0:
-                print("Successfull compilation:\n", compile_process.stdout)
+                print("Successfull compilation\n")
 
             else:
                 print("Compilation error:")
@@ -49,7 +49,7 @@ class FokkerPlanckSolver:
 
         Args:
             i: coordinate for each point
-            profile_type: type of profile ('linear', ...)
+            profile_type: type of profile ('linear', 'small_min', ...)
 
         Returns:
             Profile value at position i
@@ -63,25 +63,25 @@ class FokkerPlanckSolver:
             c = params.get('c', 0)
             return slope * i + c
 
-        elif profile_type == "quadratic":
-            a = params.get('a', -0.0001)
-            b = params.get('b', 0)
-            c = params.get('c', 0)
-            return a * i ** 2 + b * i + c
+        elif profile_type == "small_min":
+            a = params.get('a', 0.0001)
+            t = params.get('t', 0.001)
+            c = params.get('c', -0.0002)
+            return a * np.exp(-i / t) + c
 
         else:
             return -i/100  # Default linear profile
 
-    def gen_profile(self, N, profile_type="linear", params=None):
+    def gen_profile(self, N, profile_type="linear", params=None, name="pr"):
         """
-        Generates the input profile for a given N
+        Generates the input profile for a given N, makes an input file.
 
         Args:
             N: scalar
                 actual number of segments
 
             profile_type: str
-                type of profile ('linear', 'quadratic')
+                type of profile ('linear', 'small_min')
 
             z: scalar
                 actual length of the field (related to dt and the mobility constant)
