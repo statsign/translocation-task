@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import GPyOpt
 import subprocess
 import traceback
+import os
+import glob
 
 
 class FokkerPlanckSolver:
