@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import GPyOpt
 import subprocess
 import traceback
+import os
+import glob
 
 
 class FokkerPlanckSolver:
@@ -32,7 +34,7 @@ class FokkerPlanckSolver:
                 text=True
             )
             if compile_process.returncode == 0:
-                print("Successfull compilation:\n", compile_process.stdout)
+                print("Successfull compilation\n")
 
             else:
                 print("Compilation error:")
@@ -47,7 +49,7 @@ class FokkerPlanckSolver:
 
         Args:
             i: coordinate for each point
-            profile_type: type of profile ('linear', ...)
+            profile_type: type of profile ('linear', 'small_min', ...)
 
         Returns:
             Profile value at position i
@@ -61,25 +63,25 @@ class FokkerPlanckSolver:
             c = params.get('c', 0)
             return slope * i + c
 
-        elif profile_type == "quadratic":
-            a = params.get('a', -0.0001)
-            b = params.get('b', 0)
-            c = params.get('c', 0)
-            return a * i ** 2 + b * i + c
+        elif profile_type == "small_min":
+            a = params.get('a', 0.0001)
+            t = params.get('t', 0.001)
+            c = params.get('c', -0.0002)
+            return a * np.exp(-i / t) + c
 
         else:
             return -i/100  # Default linear profile
 
-    def gen_profile(self, N, profile_type="linear", params=None):
+    def gen_profile(self, N, profile_type="linear", params=None, name="pr"):
         """
-        Generates the input profile for a given N
+        Generates the input profile for a given N, makes an input file.
 
         Args:
             N: scalar
                 actual number of segments
 
             profile_type: str
-                type of profile ('linear', 'quadratic')
+                type of profile ('linear', 'small_min')
 
             z: scalar
                 actual length of the field (related to dt and the mobility constant)
@@ -87,6 +89,9 @@ class FokkerPlanckSolver:
         """
         N = int(N)
         z = N
+
+        dt = []
+        F = []
 
         with open("new_input.txt", "w", encoding="UTF-8") as fin:
             fin.write(f'{N} {z}\n')
@@ -96,17 +101,22 @@ class FokkerPlanckSolver:
             for i in range(N+1):
                 profile_value = self.profile_func(i, profile_type, params)
                 fin.write(f"{i} {profile_value:.5e}\n")
+                dt.append(i)
+                F.append(profile_value)
+
+            filename = name + "_in" + '.npz'
+            np.savez(filename, dt=dt, F=F)
 
         return
 
-    def run_fp(self, N, profile_type="linear", params=None):
+    def run_fp(self, N, profile_type="linear", params=None, name="pr"):
         """
         Runs Fokker-Planck program with specified parameters
 
         Args:
             N: scalar
                 actual number of segments
-            profile_type: type of profile ('linear', 'quadratic')
+            profile_type: type of profile ('linear', 'small_min', ...)
 
         Returns:
             Dictionary with simulation results
@@ -130,7 +140,7 @@ class FokkerPlanckSolver:
             return None
 
         # Read results
-        result = self.read_pdf()
+        result = self.read_pdf(name)
         if result:
             result['N'] = int(N)
             result['profile_type'] = profile_type
@@ -138,7 +148,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def read_pdf(self):
+    def read_pdf(self, name="pr"):
         """
         Reads results from output file
 
@@ -186,37 +196,39 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
+                filename = name + "_out" + '.npz'
+                path = os.path.join(".", filename)
+
+                np.savez(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
+                         pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
+
                 return results
 
         except Exception as e:
             print(f"Error reading output file: {e}")
 
-    def plot_profile(self, N, profile_type="linear", params=None):
+    def plot_profile(self, N, profile_type="linear", params=None, name="pr"):
         """
         Plot generated profile
 
         Args:
-            profile_type: type of profile ('linear', 'quadratic')
+            profile_type: type of profile ('linear', 'small_min')
 
         """
         self.gen_profile(N, profile_type, params)
 
-        zn = []
-        F = []
-
-        with open("new_input.txt", encoding="UTF-8") as file:
-            lines = file.readlines()[2:]
-
-            for line in lines:
-                l = line.split()
-                zn = np.append(zn, int(l[0]))
-                F = np.append(F, float(l[1]))
+        filename = name + '_in' + '.npz'
 
         fig, ax = plt.subplots()
+
+        with np.load(filename) as data:
+            zn = data['dt']
+            F = data['F']
         ax.plot(zn, F)
+
         plt.show()
 
-    def plot_pdf(self, result, ref=None):
+    def plot_pdf(self, result, ref=None, name="pr"):
         """
         Plot time distributions for a given N
 
@@ -230,10 +242,13 @@ class FokkerPlanckSolver:
 
         fig, ax = plt.subplots()
 
-        dt = result['dt']
-        total = result['ptotal']
-        success = result['pTimeN']
-        failure = result['pTime0']
+        filename = name + "_out" + '.npz'
+
+        with np.load(filename) as data:
+            dt = data['dt']
+            total = data['ptotal']
+            success = data['pTimeN']
+            failure = data['pTime0']
 
         ax.plot(dt, total, 'b-', linewidth=2,
                 label=f"Total distribution (N={result['N']})")
@@ -257,7 +272,6 @@ class BayesOptimizer:
         self.solver = solver
         self.N_ref = N_ref
         self.reference_model = None
-        self.history = []
 
         # Initialize log file
         with open("optimization_log.txt", "w") as f:
@@ -294,20 +308,13 @@ class BayesOptimizer:
 
         difference = np.mean((current_value - target)**2)  # mse
 
-        # Log the result
-        iteration_info = {
-            'N': N_value,
-            'loss': float(difference)
-        }
-        self.history.append(iteration_info)
-
         # Write to log file
         with open("optimization_log.txt", "a") as f:
             f.write(f"N={N_value}, Loss={difference}\n")
 
         return np.array([[difference]])
 
-    def run_optimization(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
+    def run_bayesopt(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
         """
         Run Bayesian optimization
 
@@ -430,7 +437,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     solver.plot_pdf(optimizer.reference_model)
 
     # Run optimization
-    result = optimizer.run_optimization()
+    result = optimizer.run_bayesopt()
 
     if result:
         best_N = result['best_N']
@@ -447,3 +454,8 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
 
         plt.legend()
         plt.show()
+
+npz_files = glob.glob('*.npz')
+
+for file in npz_files:
+    os.remove(file)

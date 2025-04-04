@@ -2,3 +2,7 @@
 *.txt
 *.exe
 .venv/
+*.npz
+images/
+*.png
+__pycache__/
