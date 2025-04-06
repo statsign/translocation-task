@@ -14,26 +14,11 @@ for file in png_files:
 
 
 class CompareProfiles:
-    def __init__(self, profiles=None):
+    def __init__(self, profiles):
 
         # Initialize solver
         self.solver = FokkerPlanckSolver()
-
-        if profiles == None:
-            # Define different profile types and parameters
-            self.profiles = [
-                {"type": "linear", "params": {"slope": -0.01},
-                 "label": "Linear (slope=-0.01)", "name": "pr1"},
-                {"type": "linear", "params": {"slope": -0.02},
-                 "label": "Linear (slope=-0.02)", "name": "pr2"},
-                {"type": "small_min", "params": {"a": 60, "t": 90},
-                 "label": "Small minimum (a=60)", "name": "pr3"},
-                {"type": "small_min", "params": {"a": 40, "t": 90},
-                 "label": "Small minimum (a=40)", "name": "pr4"}
-            ]
-
-        else:
-            self.profiles = profiles
+        self.profiles = profiles
 
     def run_multiple_simulations(self, N):
         self.plot_profiles(N)
@@ -114,7 +99,7 @@ class CompareProfiles:
 
 
 class MultipleOptimizer:
-    def __init__(self, solver, N_ref=100, profiles=None):
+    def __init__(self, solver, profiles, N_ref=100):
         self.N_ref = N_ref
         self.reference_models = {}
         self.solver = solver
