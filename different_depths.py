@@ -65,9 +65,10 @@ class CompareProfiles:
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
         folder_path = "data"
+        os.makedirs(folder_path, exist_ok=True)
         for i, result in enumerate(results):
             filename = result["name"] + f"_{N}" + '_out' + '.npz'
-            path = os.path.join(folder_path, filename)  
+            path = os.path.join(folder_path, filename)
             try:
                 with np.load(path) as data:
 
@@ -85,6 +86,7 @@ class CompareProfiles:
             except FileNotFoundError:
                 print(f"File {filename} not found!")
 
+        os.makedirs("images", exist_ok=True)
         imgname = f"pdfs_{results[0]['N']}"
         img_path = os.path.join("images", imgname)
         plt.savefig(img_path)
@@ -254,6 +256,7 @@ class MultipleOptimizer:
                 ax.legend()
                 plt.tight_layout()
 
+                os.makedirs("images", exist_ok=True)
                 imgname = f"current_opt_{profile['name']}_{best_N}"
                 img_path = os.path.join("images", imgname)
                 plt.savefig(img_path)
@@ -289,6 +292,7 @@ class MultipleOptimizer:
                     axes[i].legend()
 
             plt.tight_layout()
+            os.makedirs("images", exist_ok=True)
             path = os.path.join("images", "opt_result")
             plt.savefig(path)
             plt.close()
