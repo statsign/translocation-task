@@ -274,7 +274,7 @@ class MultipleOptimizer:
 
         # Compare all optimized results
         if results and plot_results:
-            ref_model = self.reference_models[profile_name]
+
             fig, axes = plt.subplots(nrows=2, ncols=2)
             axes = axes.flatten()
             fig.suptitle('Different optimized profiles')
@@ -283,6 +283,7 @@ class MultipleOptimizer:
                 profile_name = profile['name']
                 if profile_name in results and results[profile_name]['final_result']:
                     result = results[profile_name]
+                    ref_model = self.reference_models[profile_name]
                     axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'],
                                  label=f"{profile['label']} (N={result['best_N']})")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
