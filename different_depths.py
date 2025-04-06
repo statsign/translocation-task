@@ -19,7 +19,7 @@ class CompareProfiles:
         # Initialize solver
         self.solver = FokkerPlanckSolver()
         self.profiles = profiles
-        self.log_scale=log_scale
+        self.log_scale = log_scale
 
     def run_multiple_simulations(self, N):
         self.plot_profiles(N)
@@ -54,6 +54,7 @@ class CompareProfiles:
             axes[i].legend(loc='best')
 
         plt.tight_layout()
+        os.makedirs("images", exist_ok=True)
         imgname = f"profiles_{N}"
         img_path = os.path.join("images", imgname)
         plt.savefig(img_path)
@@ -102,7 +103,7 @@ class MultipleOptimizer:
         self.solver = solver
         self.multiple = CompareProfiles(profiles=profiles)
         self.profiles = profiles
-        self.log_scale= log_scale
+        self.log_scale = log_scale
 
     def compute_reference_models(self):
         print(f"Computing reference models for N_ref={self.N_ref}")
@@ -324,7 +325,8 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
 
     # Initialize optimizer
     N_0 = 100
-    optimizer = MultipleOptimizer(solver, N_ref=N_0, profiles=profiles, log_scale=True)
+    optimizer = MultipleOptimizer(
+        solver, N_ref=N_0, profiles=profiles, log_scale=True)
 
     # Compute reference models
     optimizer.compute_reference_models()
