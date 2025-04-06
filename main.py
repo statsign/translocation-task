@@ -69,7 +69,7 @@ class FokkerPlanckSolver:
             return slope * i + c
 
         elif profile_type == "small_min":
-            a = params.get('a', 0.0001)
+            a = params.get('a', 0.01)
             t = params.get('t', 0.001)
             c = params.get('c', -0.0002)
             return a * np.exp(-i / t) + c
@@ -195,10 +195,9 @@ class FokkerPlanckSolver:
                     pTimeN = np.append(pTimeN, float(l[1]))
                     pTime0 = np.append(pTime0, float(l[2]))
 
-            
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
-                if log_scale==True:
+                if log_scale == True:
                     ptotal = np.log(ptotal)
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
@@ -215,7 +214,7 @@ class FokkerPlanckSolver:
                 os.makedirs(folder_path, exist_ok=True)
 
                 np.savez_compressed(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
-                         pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
+                                    pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
 
                 return results
 
@@ -264,7 +263,6 @@ class FokkerPlanckSolver:
                 total = data['ptotal']
                 success = data['pTimeN']
                 failure = data['pTime0']
-        
 
             ax.plot(dt, total, 'b-', linewidth=2,
                     label=f"Total distribution (N={result['N']})")
@@ -277,8 +275,7 @@ class FokkerPlanckSolver:
             ax.legend(loc='best')
             plt.show()
         except FileNotFoundError:
-                print(f"File {filename} not found!")
-
+            print(f"File {filename} not found!")
 
 
 class BayesOptimizer:

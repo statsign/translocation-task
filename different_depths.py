@@ -84,6 +84,7 @@ class CompareProfiles:
                              label=f"{result['label']}")
                 axes[i].set_xlabel('t')
                 axes[i].set_ylabel('PDF')
+                axes[i].set_ylim(-20, np.max(total))
                 axes[i].legend()
 
             except FileNotFoundError:
@@ -256,6 +257,7 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized (N={best_N})')
                 ax.set_xlabel('t')
                 ax.set_ylabel('PDF')
+                ax.set_ylim(1e-6, 1e-1)
                 ax.set_title(f'{profile["label"]}')
                 ax.legend()
                 plt.tight_layout()
@@ -294,6 +296,7 @@ class MultipleOptimizer:
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
                     axes[i].set_xlabel('t')
                     axes[i].set_ylabel('PDF')
+                    axes[i].set_ylim(1e-6, 1e-1)
                     axes[i].legend()
 
             plt.tight_layout()
@@ -311,10 +314,10 @@ profiles = [
         "label": "Linear (slope=-0.01)", "name": "pr1"},
     {"type": "linear", "params": {"slope": -0.02},
         "label": "Linear (slope=-0.02)", "name": "pr2"},
-    {"type": "small_min", "params": {"a": 60, "t": 90, "c": -0.02},
-        "label": "Small minimum (a=60)", "name": "pr3"},
-    {"type": "small_min", "params": {"a": 40, "t": 90, "c": -0.02},
-        "label": "Small minimum (a=40)", "name": "pr4"}
+    {"type": "small_min", "params": {"a": 0.1, "t": 60, "c": -0.1},
+        "label": "Small minimum (a=0.1)", "name": "pr3"},
+    {"type": "small_min", "params": {"a": 0.2, "t": 60, "c": -0.2},
+        "label": "Small minimum (a=0.2)", "name": "pr4"}
 ]
 
 # Example usage
