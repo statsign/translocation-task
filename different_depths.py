@@ -14,11 +14,12 @@ for file in png_files:
 
 
 class CompareProfiles:
-    def __init__(self, profiles):
+    def __init__(self, profiles, log_scale=False):
 
         # Initialize solver
         self.solver = FokkerPlanckSolver()
         self.profiles = profiles
+        self.log_scale=log_scale
 
     def run_multiple_simulations(self, N):
         self.plot_profiles(N)
@@ -26,7 +27,7 @@ class CompareProfiles:
         results = []
         for profile in self.profiles:
             result = self.solver.run_fp(
-                N, profile_type=profile['type'], params=profile['params'], name=profile['name'])
+                N, profile_type=profile['type'], params=profile['params'], name=profile['name'], log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -52,6 +53,7 @@ class CompareProfiles:
             axes[i].plot(zn, F, label=f"{profile['label']}")
             axes[i].legend(loc='best')
 
+        plt.tight_layout()
         imgname = f"profiles_{N}"
         img_path = os.path.join("images", imgname)
         plt.savefig(img_path)
@@ -85,7 +87,7 @@ class CompareProfiles:
 
             except FileNotFoundError:
                 print(f"File {filename} not found!")
-
+        plt.tight_layout()
         os.makedirs("images", exist_ok=True)
         imgname = f"pdfs_{results[0]['N']}"
         img_path = os.path.join("images", imgname)
@@ -94,12 +96,13 @@ class CompareProfiles:
 
 
 class MultipleOptimizer:
-    def __init__(self, solver, profiles, N_ref=100):
+    def __init__(self, solver, profiles, N_ref=100, log_scale=False):
         self.N_ref = N_ref
         self.reference_models = {}
         self.solver = solver
         self.multiple = CompareProfiles(profiles=profiles)
         self.profiles = profiles
+        self.log_scale= log_scale
 
     def compute_reference_models(self):
         print(f"Computing reference models for N_ref={self.N_ref}")
@@ -108,7 +111,7 @@ class MultipleOptimizer:
         for profile in self.profiles:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
-                self.N_ref, profile['type'], profile['params'])
+                self.N_ref, profile['type'], profile['params'], log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -132,7 +135,7 @@ class MultipleOptimizer:
 
         # Run Fortran program for this N value
         result = self.solver.run_fp(
-            N_value, profile['type'], profile['params'])
+            N_value, profile['type'], profile['params'], log_scale=self.log_scale)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -230,7 +233,7 @@ class MultipleOptimizer:
                         break
 
                     best_result = self.solver.run_fp(
-                        best_N, profile['type'], profile['params'])
+                        best_N, profile['type'], profile['params'], log_scale=self.log_scale)
 
                     # input("Press Enter to continue...")
 
@@ -240,7 +243,7 @@ class MultipleOptimizer:
                 return None
 
             best_result = self.solver.run_fp(
-                best_N, profile['type'], profile['params'])
+                best_N, profile['type'], profile['params'], log_scale=self.log_scale)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
@@ -317,11 +320,11 @@ profiles = [
 if __name__ == "__main__":  # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
-    compare = CompareProfiles(profiles=profiles)
+    compare = CompareProfiles(profiles=profiles, log_scale=True)
 
     # Initialize optimizer
     N_0 = 100
-    optimizer = MultipleOptimizer(solver, N_ref=N_0, profiles=profiles)
+    optimizer = MultipleOptimizer(solver, N_ref=N_0, profiles=profiles, log_scale=True)
 
     # Compute reference models
     optimizer.compute_reference_models()
