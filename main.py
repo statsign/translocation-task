@@ -6,6 +6,11 @@ import traceback
 import os
 import glob
 
+npz_files = glob.glob(os.path.join("data", '*.npz'))
+
+for file in npz_files:
+    os.remove(file)
+
 
 class FokkerPlanckSolver:
     def __init__(self):
@@ -72,7 +77,7 @@ class FokkerPlanckSolver:
         else:
             return -i/100  # Default linear profile
 
-    def gen_profile(self, N, profile_type="linear", params=None, name="pr"):
+    def gen_profile(self, N, profile_type="linear", params=None):
         """
         Generates the input profile for a given N, makes an input file.
 
@@ -104,15 +109,13 @@ class FokkerPlanckSolver:
                 dt.append(i)
                 F.append(profile_value)
 
-            folder_path = "data"
-            filename = name + f"_{N}" + "_in" + '.npz'
-            full_path = os.path.join(folder_path, filename)
+        result = {
+            "N": N,
+            "dt": np.array(dt),
+            "F": np.array(F),
+        }
 
-            os.makedirs(folder_path, exist_ok=True)
-
-            np.savez(full_path, dt=dt, F=F)
-
-        return
+        return result
 
     def run_fp(self, N, profile_type="linear", params=None, name="pr"):
         """
@@ -208,7 +211,7 @@ class FokkerPlanckSolver:
 
                 os.makedirs(folder_path, exist_ok=True)
 
-                np.savez(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
+                np.savez_compressed(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
                          pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
 
                 return results
@@ -216,7 +219,7 @@ class FokkerPlanckSolver:
         except Exception as e:
             print(f"Error reading output file: {e}")
 
-    def plot_profile(self, N, profile_type="linear", params=None, name="pr"):
+    def plot_profile(self, N, profile_type="linear", params=None):
         """
         Plot generated profile
 
@@ -224,17 +227,11 @@ class FokkerPlanckSolver:
             profile_type: type of profile ('linear', 'small_min')
 
         """
-        self.gen_profile(N, profile_type, params)
-
-        folder_path = "data"
-        filename = name + f"_{N}" + '_in' + '.npz'
-        path = os.path.join(folder_path, filename)
+        result = self.gen_profile(N, profile_type, params)
 
         fig, ax = plt.subplots()
-        if os.path.exists(path):
-            with np.load(path) as data:
-                zn = data['dt']
-                F = data['F']
+        zn = result['dt']
+        F = result['F']
         ax.plot(zn, F)
 
         plt.show()
@@ -254,26 +251,31 @@ class FokkerPlanckSolver:
         fig, ax = plt.subplots()
 
         folder_path = "data"
+        os.makedirs(folder_path, exist_ok=True)
         filename = name + f"_{result['N']}" + "_out" + '.npz'
         path = os.path.join(folder_path, filename)
 
-        if os.path.exists(path):
+        try:
             with np.load(path) as data:
                 dt = data['dt']
                 total = data['ptotal']
                 success = data['pTimeN']
                 failure = data['pTime0']
+        
 
-        ax.plot(dt, total, 'b-', linewidth=2,
-                label=f"Total distribution (N={result['N']})")
+            ax.plot(dt, total, 'b-', linewidth=2,
+                    label=f"Total distribution (N={result['N']})")
 
-        # Plot reference if provided
-        if ref:
-            ax.plot(ref['dt'], ref['ptotal'], 'g--',
-                    label=f"(N_ref={ref['N']})")
+            # Plot reference if provided
+            if ref:
+                ax.plot(ref['dt'], ref['ptotal'], 'g--',
+                        label=f"(N_ref={ref['N']})")
 
-        ax.legend(loc='best')
-        plt.show()
+            ax.legend(loc='best')
+            plt.show()
+        except FileNotFoundError:
+                print(f"File {filename} not found!")
+
 
 
 class BayesOptimizer:
@@ -464,12 +466,12 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         ax.plot(optimizer.reference_model['dt'], optimizer.reference_model['ptotal'],
                 'b-', label=f'N_0={N_0})')
         ax.plot(result['final_result']['dt'], result['final_result']['ptotal'],
-                'r-', label=f'Оптимальное (N={best_N})', linestyle="--")
+                'r-', label=f'Best N (N={best_N})', linestyle="--")
 
         plt.legend()
         plt.show()
 
-    npz_files = glob.glob('*.npz')
+    npz_files = glob.glob(os.path.join("data", '*.npz'))
 
     for file in npz_files:
         os.remove(file)
