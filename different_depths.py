@@ -44,21 +44,14 @@ class CompareProfiles:
         folder_path = "data"
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
-            self.solver.gen_profile(
-                N, profile['type'], profile['params'], profile['name'])
-            filename = profile["name"] + f"_{N}" + "_in" + '.npz'
-            data_path = os.path.join(folder_path, filename)  
-    
-            try:
-                with np.load(data_path) as data:
-                    zn = data['dt']
-                    F = data['F']
-            
-                axes[i].plot(zn, F, label=f"{profile['label']}")
-                axes[i].legend(loc='best')
+            result = self.solver.gen_profile(
+                N, profile['type'], profile['params'])
+            zn = result['dt']
+            F = result['F']
 
-            except FileNotFoundError:
-                print(f"File {filename} not found!")
+            axes[i].plot(zn, F, label=f"{profile['label']}")
+            axes[i].legend(loc='best')
+
         imgname = f"profiles_{N}"
         img_path = os.path.join("images", imgname)
         plt.savefig(img_path)
