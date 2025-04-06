@@ -117,7 +117,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def run_fp(self, N, profile_type="linear", params=None, name="pr"):
+    def run_fp(self, N, profile_type="linear", params=None, name="pr", log_scale=False):
         """
         Runs Fokker-Planck program with specified parameters
 
@@ -148,7 +148,7 @@ class FokkerPlanckSolver:
             return None
 
         # Read results
-        result = self.read_pdf(N, name)
+        result = self.read_pdf(N, name, log_scale)
         if result:
             result['N'] = int(N)
             result['profile_type'] = profile_type
@@ -156,7 +156,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def read_pdf(self, N, name="pr"):
+    def read_pdf(self, N, name="pr", log_scale=False):
         """
         Reads results from output file
 
@@ -195,8 +195,11 @@ class FokkerPlanckSolver:
                     pTimeN = np.append(pTimeN, float(l[1]))
                     pTime0 = np.append(pTime0, float(l[2]))
 
+            
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
+                if log_scale==True:
+                    ptotal = np.log(ptotal)
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)
