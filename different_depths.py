@@ -123,7 +123,7 @@ class MultipleOptimizer:
                 return False
 
     def loss_function(self, theta, profile_name):
-        if self.reference_models is None:
+        if not self.reference_models:
             print("ERROR: Target not computed!")
 
         N_value = int(theta[0])
