@@ -2,8 +2,10 @@
 *.txt
 *.exe
 .venv/
+venv
 *.npz
 images/
 *.png
 __pycache__/
 data/
+output
