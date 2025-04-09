@@ -24,7 +24,7 @@ class FokkerPlanckSolver:
         # Input file parameters
         self.timesteps = 100000
         self.dt = 0.01
-        self.timedisplay = 10000
+        self.timedisplay = 10000 # timedisplay = Nt
         self.intdisplay = 10
 
         self.compile_fortran()
@@ -73,6 +73,12 @@ class FokkerPlanckSolver:
             t = params.get('t', 0.001)
             c = params.get('c', -0.0002)
             return a * np.exp(-i / t) + c
+
+        elif profile_type == "quadratic":
+            a = params.get('a', 0.0002)
+            b = params.get('b', 50)
+            c = params.get('c', -2)
+            return a * (i-b)**2 + c
 
         else:
             return -i/100  # Default linear profile
@@ -195,6 +201,13 @@ class FokkerPlanckSolver:
                     pTimeN = np.append(pTimeN, float(l[1]))
                     pTime0 = np.append(pTime0, float(l[2]))
 
+                if np.isnan(pTimeN).any():
+                    raise ValueError(f"NaN values detected in pTimeN for profile {name} with N={N}")
+                    return None
+                elif np.isnan(pTime0).any():
+                    raise ValueError(f"NaN values detected in pTime0 for profile {name} with N={N}")
+                    return None
+
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
                 if log_scale == True:
@@ -293,9 +306,9 @@ class BayesOptimizer:
         with open("optimization_log.txt", "w") as f:
             f.write(f"Reference N: {N_ref}\n\n")
 
-    def compute_reference_model(self):
+    def compute_reference_model(self, name="pr"):
         print(f"Computed reference model for N_ref={self.N_ref}")
-        self.reference_model = self.solver.run_fp(self.N_ref)
+        self.reference_model = self.solver.run_fp(self.N_ref, name=name)
         if self.reference_model:
             print(f"Reference model ptotal: {self.reference_model['ptotal']}")
             return True

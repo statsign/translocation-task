@@ -42,7 +42,6 @@ class CompareProfiles:
 
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
-        folder_path = "data"
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
             result = self.solver.gen_profile(
@@ -64,7 +63,6 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-
         fig, axes = plt.subplots(2, 2)
         axes = axes.flatten()
         folder_path = "data"
@@ -74,9 +72,10 @@ class CompareProfiles:
             path = os.path.join(folder_path, filename)
             try:
                 with np.load(path) as data:
-
                     dt = data['dt']
                     total = data['ptotal']
+                    if len(total.shape) > 1:
+                        total = total.flatten()
                     success = data['pTimeN']
                     failure = data['pTime0']
 
@@ -84,11 +83,13 @@ class CompareProfiles:
                              label=f"{result['label']}")
                 axes[i].set_xlabel('t')
                 axes[i].set_ylabel('PDF')
-                axes[i].set_ylim(-20, np.max(total))
+                #axes[i].set_ylim(-30, 0)
                 axes[i].legend()
 
             except FileNotFoundError:
                 print(f"File {filename} not found!")
+            except Exception as e:
+                print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
         os.makedirs("images", exist_ok=True)
         imgname = f"pdfs_{results[0]['N']}"
@@ -113,7 +114,7 @@ class MultipleOptimizer:
         for profile in self.profiles:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
-                self.N_ref, profile['type'], profile['params'], log_scale=self.log_scale)
+                self.N_ref, profile['type'], profile['params'], name=profile['name'], log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -257,7 +258,6 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized (N={best_N})')
                 ax.set_xlabel('t')
                 ax.set_ylabel('PDF')
-                ax.set_ylim(1e-6, 1e-1)
                 ax.set_title(f'{profile["label"]}')
                 ax.legend()
                 plt.tight_layout()
@@ -296,7 +296,6 @@ class MultipleOptimizer:
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
                     axes[i].set_xlabel('t')
                     axes[i].set_ylabel('PDF')
-                    axes[i].set_ylim(1e-6, 1e-1)
                     axes[i].legend()
 
             plt.tight_layout()
@@ -314,10 +313,10 @@ profiles = [
         "label": "Linear (slope=-0.01)", "name": "pr1"},
     {"type": "linear", "params": {"slope": -0.02},
         "label": "Linear (slope=-0.02)", "name": "pr2"},
-    {"type": "small_min", "params": {"a": 0.1, "t": 60, "c": -0.1},
-        "label": "Small minimum (a=0.1)", "name": "pr3"},
-    {"type": "small_min", "params": {"a": 0.2, "t": 60, "c": -0.2},
-        "label": "Small minimum (a=0.2)", "name": "pr4"}
+    {"type": "quadratic", "params": {"a": 0.0001, "b": 250, "c": -10},
+        "label": "Quadratic (a=0.02)", "name": "pr3"},
+    {"type": "quadratic", "params": {"a": 0.00015, "b": 250, "c": -10},
+        "label": "Quadratic (a=0.015)", "name": "pr4"}
 ]
 
 # Example usage
@@ -327,7 +326,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     compare = CompareProfiles(profiles=profiles, log_scale=True)
 
     # Initialize optimizer
-    N_0 = 100
+    N_0 = 500
     optimizer = MultipleOptimizer(
         solver, N_ref=N_0, profiles=profiles, log_scale=True)
 
