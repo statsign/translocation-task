@@ -467,7 +467,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     results = optimizer.run_multiple_opt()
 
 
-npz_files = glob.glob(data_folder, '*.npz')
+npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
 
 for file in npz_files:
     os.remove(file)
