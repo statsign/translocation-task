@@ -243,7 +243,7 @@ class MultipleOptimizer:
             if profile["type"] == "linear":
                 space.extend([
                     {
-                        "name": "k",
+                        "name": "a",
                         "type": "continuous",
                         "domain": (-0.5, 0.5),
                         "dimensionality": 1,
@@ -256,7 +256,20 @@ class MultipleOptimizer:
                         "type": "continuous",
                         "domain": (-0.02, 0.02),
                         "dimensionality": 1,
+                    },
+                    {
+                        "name": "b",
+                        "type": "continuous",
+                        "domain": (0, 51),
+                        "dimensionality": 1,
+                    },
+                    {
+                        "name": "c",
+                        "type": "continuous",
+                        "domain": (-10, 1),
+                        "dimensionality": 1,
                     }
+
                 ])
             elif self.profile['type'] == "small_min":
                 space.extend([
