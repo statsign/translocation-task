@@ -1,4 +1,4 @@
-from main import FokkerPlanckSolver, BayesOptimizer
+from main import FokkerPlanckSolver
 import matplotlib.pyplot as plt
 import numpy as np
 import subprocess
@@ -184,9 +184,23 @@ class MultipleOptimizer:
         profile = next(
             (p for p in self.profiles if p['name'] == profile_name), None)
 
-        # Run Fortran program for this N value
+        # Create new params dictionary based on profile type
+        params = profile['params'].copy()
+
+        if profile['type'] == "linear":
+            if len(theta) > 1:
+                params['slope'] = theta[1]
+        elif profile['type'] == "quadratic":
+            if len(theta) > 1:
+                params['a'] = theta[1]
+                if len(theta) > 2:
+                    params['b'] = theta[2]
+                    if len(theta) > 3:
+                        params['c'] = theta[3]
+
+        # Run Fortran program for this params
         result = self.solver.run_fp(
-            N_value, profile['type'], profile['params'], log_scale=self.log_scale)
+            N_value, profile['type'], params, log_scale=self.log_scale)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -196,11 +210,11 @@ class MultipleOptimizer:
         # Write to log file
         with open("optimization_log.txt", "a") as f:
             f.write(
-                f"Profile={profile['label']}, N={N_value}, Loss={difference}\n")
+                f"Profile={profile['label']}, N={N_value}, Params={params}, Loss={difference}\n")
 
         return np.array([[difference]])
 
-    def run_multiple_opt(self, max_iter=5, initial_points=50, domain=(2, 100), plot_results=True):
+    def run_multiple_opt(self, max_iter=5, initial_points=50,  plot_results=True):
 
         if self.reference_models is None:
             success = self.compute_reference_models()
@@ -208,12 +222,12 @@ class MultipleOptimizer:
                 print("ERROR: Cannot compute reference model")
                 return None
 
-        # Define optimization space
+         # Define optimization space based on profile type
         space = [
             {
-                "name": "var_1",
+                "name": "N",
                 "type": "discrete",
-                "domain": tuple(range(domain[0], domain[1] + 1)),
+                "domain": tuple(range(2, 51)),
                 "dimensionality": 1,
             }
         ]
@@ -222,6 +236,48 @@ class MultipleOptimizer:
 
         for profile in self.profiles:
             profile_name = profile['name']
+
+            # Define optimization space
+            if profile["type"] == "linear":
+                space.extend = [
+                    {
+                        "name": "k",
+                        "type": "continuous",
+                        "domain": (-0.5, 0.5),
+                        "dimensionality": 1,
+                    }
+                ]
+            elif profile["type"] == "quadratic":
+                space.extend = [
+                    {
+                        "name": "a",
+                        "type": "continuous",
+                        "domain": (-0.02, 0.02),
+                        "dimensionality": 1,
+                    }
+                ]
+            elif self.profile_type == "small_min":
+                space.extend([
+                    {
+                        "name": "a",
+                        "type": "continuous",
+                        "domain": [0.001, 0.1],
+                        "dimensionality": 1,
+                    },
+                    {
+                        "name": "t",
+                        "type": "continuous",
+                        "domain": [0.0001, 0.01],
+                        "dimensionality": 1,
+                    },
+                    {
+                        "name": "c",
+                        "type": "continuous",
+                        "domain": [-0.001, 0.001],
+                        "dimensionality": 1,
+                    }
+                ])
+
             print(f"\nStarting optimization for {profile['label']}")
 
             # Select randomly 50 points to use as the initial training set
@@ -268,23 +324,31 @@ class MultipleOptimizer:
                     bo.run_optimization(
                         max_iter=max_iter, max_time=max_time, eps=tolerance, verbosity=True)
 
+                    best_params = bo.x_opt
                     best_N = int(bo.x_opt[0])
                     opt_loss = bo.fx_opt
+
+                    optimized_params = profile['params'].copy()
+
+                    if self.profile_type == "linear":
+                        if len(best_params) > 1:
+                            optimized_params['slope'] = best_params[1]
+
+                    elif self.profile_type == "quadratic":
+                        if len(best_params) > 1:
+                            optimized_params['a'] = best_params[1]
+                            if len(best_params) > 2:
+                                optimized_params['b'] = best_params[2]
+                                if len(best_params) > 3:
+                                    optimized_params['c'] = best_params[3]
 
                     # Print the current best result
                     print(f"Iteration: {(i + 1) * 5}")
                     print(f"Best N value: {best_N}")
                     print(f"Objective function value: {opt_loss}")
 
-                    # Check if the best N is the reference N
-                    if int(best_N) == self.N_ref:
-                        print(
-                            f"Optimization stopped: Best N={best_N} equals N_ref={self.N_ref}")
-                        best_result = self.reference_models[profile_name]
-                        break
-
                     best_result = self.solver.run_fp(
-                        best_N, profile['type'], profile['params'], log_scale=self.log_scale)
+                        best_N, profile['type'], optimized_params, log_scale=self.log_scale)
 
                     # input("Press Enter to continue...")
 
@@ -293,8 +357,20 @@ class MultipleOptimizer:
                 traceback.print_exc()
                 return None
 
+            optimized_params = profile['params'].copy()
+            if profile['type'] == "linear":
+                if len(best_params) > 1:
+                    optimized_params['slope'] = best_params[1]
+            elif profile['type'] == "quadratic":
+                if len(best_params) > 1:
+                    optimized_params['a'] = best_params[1]
+                    if len(best_params) > 2:
+                        optimized_params['b'] = best_params[2]
+                        if len(best_params) > 3:
+                            optimized_params['c'] = best_params[3]
+
             best_result = self.solver.run_fp(
-                best_N, profile['type'], profile['params'], log_scale=self.log_scale)
+                best_N, profile['type'], optimized_params, log_scale=self.log_scale)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
@@ -303,7 +379,7 @@ class MultipleOptimizer:
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
                         'b-', label=f'Reference (N={self.N_ref})')
                 ax.plot(best_result['dt'], best_result['ptotal'],
-                        'r--', label=f'Optimized (N={best_N})')
+                        'r--', label=f'Optimized (N={best_N}, params={optimized_params})')
                 ax.set_xlabel('t')
                 ax.set_ylabel('PDF')
                 ax.set_title(f'{profile["label"]}')
@@ -317,13 +393,14 @@ class MultipleOptimizer:
 
             results[profile_name] = {
                 'best_N': best_N,
+                'best_params': optimized_params,
                 'best_loss': opt_loss,
                 'bo_object': bo,
                 'final_result': best_result
             }
 
-            print(
-                f"Optimization completed for {profile['label']}: Best N = {best_N}, Loss = {opt_loss}")
+            print(f"Optimization completed for {profile['label']}:")
+            print("Best N = {best_N}, Optimized params = {optimized_params}, Loss = {opt_loss}")
 
         # Compare all optimized results
         if results and plot_results:

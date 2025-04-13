@@ -360,7 +360,7 @@ class BayesOptimizer:
         # Define optimization space
         space = [
             {
-                "name": "var_1",
+                "name": "N",
                 "type": "discrete",
                 "domain": tuple(range(domain[0], domain[1] + 1)),
                 "dimensionality": 1,
