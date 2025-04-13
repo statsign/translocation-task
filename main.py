@@ -6,10 +6,11 @@ import traceback
 import os
 import glob
 
-npz_files = glob.glob(os.path.join("data", '*.npz'))
+job_id = os.getenv('SLURM_JOB_ID', 'local')
 
-for file in npz_files:
-    os.remove(file)
+data_folder = os.path.join("data", f"job_{job_id}")
+
+os.makedirs(data_folder, exist_ok=True)
 
 
 class FokkerPlanckSolver:
@@ -24,7 +25,7 @@ class FokkerPlanckSolver:
         # Input file parameters
         self.timesteps = 100000
         self.dt = 0.01
-        self.timedisplay = 10000 # timedisplay = Nt
+        self.timedisplay = 10000  # timedisplay = Nt
         self.intdisplay = 10
 
         self.compile_fortran()
@@ -76,7 +77,7 @@ class FokkerPlanckSolver:
 
         elif profile_type == "quadratic":
             a = params.get('a', 0.0002)
-            b = params.get('b', 50)
+            b = params.get('b', 25)
             c = params.get('c', -2)
             return a * (i-b)**2 + c
 
@@ -202,10 +203,12 @@ class FokkerPlanckSolver:
                     pTime0 = np.append(pTime0, float(l[2]))
 
                 if np.isnan(pTimeN).any():
-                    raise ValueError(f"NaN values detected in pTimeN for profile {name} with N={N}")
+                    raise ValueError(
+                        f"NaN values detected in pTimeN for profile {name} with N={N}")
                     return None
                 elif np.isnan(pTime0).any():
-                    raise ValueError(f"NaN values detected in pTime0 for profile {name} with N={N}")
+                    raise ValueError(
+                        f"NaN values detected in pTime0 for profile {name} with N={N}")
                     return None
 
                 ptotal = pTime0 * results['failure_rate'] + \
@@ -219,12 +222,9 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
-                folder_path = "data"
                 filename = name + f"_{N}" + "_out" + '.npz'
 
-                path = os.path.join(folder_path, filename)
-
-                os.makedirs(folder_path, exist_ok=True)
+                path = os.path.join(data_folder, filename)
 
                 np.savez_compressed(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
                                     pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
@@ -265,10 +265,8 @@ class FokkerPlanckSolver:
 
         fig, ax = plt.subplots()
 
-        folder_path = "data"
-        os.makedirs(folder_path, exist_ok=True)
         filename = name + f"_{result['N']}" + "_out" + '.npz'
-        path = os.path.join(folder_path, filename)
+        path = os.path.join(data_folder, filename)
 
         try:
             with np.load(path) as data:
@@ -484,7 +482,8 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         plt.legend()
         plt.show()
 
-    npz_files = glob.glob(os.path.join("data", '*.npz'))
 
-    for file in npz_files:
-        os.remove(file)
+npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
+
+for file in npz_files:
+    os.remove(file)

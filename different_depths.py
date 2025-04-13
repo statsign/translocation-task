@@ -6,8 +6,17 @@ import GPyOpt
 import traceback
 import os
 import glob
+from cycler import cycler
 
-png_files = glob.glob(os.path.join("images", '*.png'))
+job_id = os.getenv('SLURM_JOB_ID', 'local')
+
+data_folder = os.path.join("data", f"job_{job_id}")
+images_folder = os.path.join("images", f"job_{job_id}")
+
+os.makedirs(data_folder, exist_ok=True)
+os.makedirs(images_folder, exist_ok=True)
+
+png_files = glob.glob(os.path.join(images_folder, '*.png'))
 
 for file in png_files:
     os.remove(file)
@@ -35,12 +44,13 @@ class CompareProfiles:
                 results.append(result)
 
         self.plot_multiple_pdf(results, N)
+        self.compare_multiple_pdf(results, N)
 
         return results
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(2, 2)
+        fig, axes = plt.subplots(2, 3)
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -52,10 +62,9 @@ class CompareProfiles:
             axes[i].plot(zn, F, label=f"{profile['label']}")
             axes[i].legend(loc='best')
 
-        plt.tight_layout()
-        os.makedirs("images", exist_ok=True)
+        # plt.tight_layout()
         imgname = f"profiles_{N}"
-        img_path = os.path.join("images", imgname)
+        img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
 
@@ -63,13 +72,12 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(2, 2)
+        fig, axes = plt.subplots(3, 2)
         axes = axes.flatten()
-        folder_path = "data"
-        os.makedirs(folder_path, exist_ok=True)
+
         for i, result in enumerate(results):
             filename = result["name"] + f"_{N}" + '_out' + '.npz'
-            path = os.path.join(folder_path, filename)
+            path = os.path.join(data_folder, filename)
             try:
                 with np.load(path) as data:
                     dt = data['dt']
@@ -83,7 +91,7 @@ class CompareProfiles:
                              label=f"{result['label']}")
                 axes[i].set_xlabel('t')
                 axes[i].set_ylabel('PDF')
-                #axes[i].set_ylim(-30, 0)
+                # axes[i].set_ylim(-50, 0)
                 axes[i].legend()
 
             except FileNotFoundError:
@@ -91,9 +99,49 @@ class CompareProfiles:
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
-        os.makedirs("images", exist_ok=True)
+
         imgname = f"pdfs_{results[0]['N']}"
-        img_path = os.path.join("images", imgname)
+        img_path = os.path.join(images_folder, imgname)
+        plt.savefig(img_path)
+        plt.close()
+
+    def compare_multiple_pdf(self, results, N):
+        if not results:
+            print("No data to display")
+            return
+
+        fig, ax = plt.subplots()
+
+        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink']
+        linestyles = ['-', '--', '-.', ':', '--', ':']
+        ax.set_prop_cycle(cycler(color=colors) + cycler(linestyle=linestyles))
+
+        for result in results:
+            filename = result["name"] + f"_{N}" + '_out' + '.npz'
+            path = os.path.join(data_folder, filename)
+            try:
+                with np.load(path) as data:
+                    dt = data['dt']
+                    total = data['ptotal']
+                    if len(total.shape) > 1:
+                        total = total.flatten()
+                    success = data['pTimeN']
+                    failure = data['pTime0']
+
+                ax.plot(dt, total, linewidth=2,
+                        label=f"{result['label']}")
+                ax.set_xlabel('t')
+                ax.set_ylabel('PDF')
+                ax.set_ylim(-15, -4)
+                ax.legend()
+
+            except FileNotFoundError:
+                print(f"File {filename} not found!")
+            except Exception as e:
+                print(f"Error processing file {filename}: {str(e)}")
+        plt.tight_layout()
+        imgname = f"compare_pdfs_{results[0]['N']}"
+        img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
 
@@ -152,7 +200,7 @@ class MultipleOptimizer:
 
         return np.array([[difference]])
 
-    def run_multiple_opt(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
+    def run_multiple_opt(self, max_iter=5, initial_points=50, domain=(2, 100), plot_results=True):
 
         if self.reference_models is None:
             success = self.compute_reference_models()
@@ -262,9 +310,8 @@ class MultipleOptimizer:
                 ax.legend()
                 plt.tight_layout()
 
-                os.makedirs("images", exist_ok=True)
                 imgname = f"current_opt_{profile['name']}_{best_N}"
-                img_path = os.path.join("images", imgname)
+                img_path = os.path.join(images_folder, imgname)
                 plt.savefig(img_path)
                 plt.close()
 
@@ -281,7 +328,7 @@ class MultipleOptimizer:
         # Compare all optimized results
         if results and plot_results:
 
-            fig, axes = plt.subplots(nrows=2, ncols=2)
+            fig, axes = plt.subplots(nrows=2, ncols=3)
             axes = axes.flatten()
             fig.suptitle('Different optimized profiles')
 
@@ -298,9 +345,8 @@ class MultipleOptimizer:
                     axes[i].set_ylabel('PDF')
                     axes[i].legend()
 
-            plt.tight_layout()
-            os.makedirs("images", exist_ok=True)
-            path = os.path.join("images", "opt_result")
+            # plt.tight_layout()
+            path = os.path.join(images_folder, "opt_result")
             plt.savefig(path)
             plt.close()
 
@@ -309,14 +355,18 @@ class MultipleOptimizer:
 
 # Define different profile types and parameters
 profiles = [
-    {"type": "linear", "params": {"slope": -0.01},
-        "label": "Linear (slope=-0.01)", "name": "pr1"},
-    {"type": "linear", "params": {"slope": -0.02},
-        "label": "Linear (slope=-0.02)", "name": "pr2"},
-    {"type": "quadratic", "params": {"a": 0.0001, "b": 250, "c": -10},
-        "label": "Quadratic (a=0.02)", "name": "pr3"},
-    {"type": "quadratic", "params": {"a": 0.00015, "b": 250, "c": -10},
-        "label": "Quadratic (a=0.015)", "name": "pr4"}
+    {"type": "linear", "params": {"slope": -0.1},
+        "label": "linear (slope=-0.1)", "name": "pr1"},
+    {"type": "linear", "params": {"slope": -0.07},
+     "label": "linear (slope=-0.07)", "name": "pr2"},
+    {"type": "linear", "params": {"slope": -0.08},
+     "label": "linear (slope=-0.08)", "name": "pr3"},
+    {"type": "quadratic", "params": {"a": 0.007, "b": 25, "c": -4},
+        "label": "Quadratic (a=0.007)", "name": "pr4"},
+    {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
+        "label": "Quadratic (a=0.008)", "name": "pr5"},
+    {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
+     "label": "Quadratic (a=0.01)", "name": "pr6"},
 ]
 
 # Example usage
@@ -326,7 +376,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     compare = CompareProfiles(profiles=profiles, log_scale=True)
 
     # Initialize optimizer
-    N_0 = 500
+    N_0 = 50
     optimizer = MultipleOptimizer(
         solver, N_ref=N_0, profiles=profiles, log_scale=True)
 
@@ -340,7 +390,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     results = optimizer.run_multiple_opt()
 
 
-npz_files = glob.glob('*.npz')
+npz_files = glob.glob(data_folder, '*.npz')
 
 for file in npz_files:
     os.remove(file)
