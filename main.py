@@ -8,7 +8,7 @@ import glob
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
-data_folder = os.path.join("data", f"job_{job_id}")
+data_folder = os.path.join("/data1/val2204", "data", f"job_{job_id}")
 
 os.makedirs(data_folder, exist_ok=True)
 
