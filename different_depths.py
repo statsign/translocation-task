@@ -239,23 +239,23 @@ class MultipleOptimizer:
 
             # Define optimization space
             if profile["type"] == "linear":
-                space.extend = [
+                space.extend([
                     {
                         "name": "k",
                         "type": "continuous",
                         "domain": (-0.5, 0.5),
                         "dimensionality": 1,
                     }
-                ]
+                ])
             elif profile["type"] == "quadratic":
-                space.extend = [
+                space.extend([
                     {
                         "name": "a",
                         "type": "continuous",
                         "domain": (-0.02, 0.02),
                         "dimensionality": 1,
                     }
-                ]
+                ])
             elif self.profile_type == "small_min":
                 space.extend([
                     {
