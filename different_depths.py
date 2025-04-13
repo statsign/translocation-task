@@ -304,8 +304,7 @@ class MultipleOptimizer:
             objective = GPyOpt.core.task.SingleObjective(
                 lambda theta: self.loss_function(theta, profile_name))
 
-            model = GPyOpt.models.InputWarpedGPModel(
-                space=feasible_region,
+            model = GPyOpt.models.GPModel(
                 exact_feval=True,
                 optimize_restarts=10,
                 verbose=False
@@ -332,7 +331,7 @@ class MultipleOptimizer:
             )
 
             max_time = None
-            max_iter = 5
+            max_iter = 10
             tolerance = 1e-8  # Distance between two consecutive observations
 
             try:
