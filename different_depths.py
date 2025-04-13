@@ -166,6 +166,7 @@ class MultipleOptimizer:
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
+                result['params'] = profile["params"]
                 result['profile'] = profile
                 self.reference_models[profile['name']] = result
                 results.append(result)
@@ -177,6 +178,7 @@ class MultipleOptimizer:
                 return False
 
     def loss_function(self, theta, profile_name):
+        theta = theta.flatten()
         if not self.reference_models:
             print("ERROR: Target not computed!")
 
@@ -256,7 +258,7 @@ class MultipleOptimizer:
                         "dimensionality": 1,
                     }
                 ])
-            elif self.profile_type == "small_min":
+            elif self.profile['type'] == "small_min":
                 space.extend([
                     {
                         "name": "a",
@@ -330,11 +332,11 @@ class MultipleOptimizer:
 
                     optimized_params = profile['params'].copy()
 
-                    if self.profile_type == "linear":
+                    if profile["type"] == "linear":
                         if len(best_params) > 1:
                             optimized_params['slope'] = best_params[1]
 
-                    elif self.profile_type == "quadratic":
+                    elif profile["type"] == "quadratic":
                         if len(best_params) > 1:
                             optimized_params['a'] = best_params[1]
                             if len(best_params) > 2:
@@ -346,6 +348,7 @@ class MultipleOptimizer:
                     print(f"Iteration: {(i + 1) * 5}")
                     print(f"Best N value: {best_N}")
                     print(f"Objective function value: {opt_loss}")
+                    print(f"Parameters: {optimized_params}")
 
                     best_result = self.solver.run_fp(
                         best_N, profile['type'], optimized_params, log_scale=self.log_scale)
@@ -377,9 +380,9 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'b-', label=f'Reference (N={self.N_ref})')
+                        'b-', label=f'Reference (N={self.N_ref})]')
                 ax.plot(best_result['dt'], best_result['ptotal'],
-                        'r--', label=f'Optimized (N={best_N}, params={optimized_params})')
+                        'r--', label=f'Optimized (N={best_N}')
                 ax.set_xlabel('t')
                 ax.set_ylabel('PDF')
                 ax.set_title(f'{profile["label"]}')
@@ -400,7 +403,8 @@ class MultipleOptimizer:
             }
 
             print(f"Optimization completed for {profile['label']}:")
-            print("Best N = {best_N}, Optimized params = {optimized_params}, Loss = {opt_loss}")
+            print(
+                f"Best N = {best_N}, Optimized params = {optimized_params}, Loss = {opt_loss}")
 
         # Compare all optimized results
         if results and plot_results:
