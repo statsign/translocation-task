@@ -305,6 +305,7 @@ class MultipleOptimizer:
                 lambda theta: self.loss_function(theta, profile_name))
 
             model = GPyOpt.models.InputWarpedGPModel(
+                space=feasible_region,
                 exact_feval=True,
                 optimize_restarts=10,
                 verbose=False
