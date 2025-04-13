@@ -224,20 +224,21 @@ class MultipleOptimizer:
                 print("ERROR: Cannot compute reference model")
                 return None
 
-         # Define optimization space based on profile type
-        space = [
-            {
-                "name": "N",
-                "type": "discrete",
-                "domain": tuple(range(2, 51)),
-                "dimensionality": 1,
-            }
-        ]
-
+         
         results = {}
 
         for profile in self.profiles:
             profile_name = profile['name']
+
+            # Define optimization space based on profile type
+            space = [
+                {
+                    "name": "N",
+                    "type": "discrete",
+                    "domain": tuple(range(2, 51)),
+                    "dimensionality": 1,
+                }
+            ]
 
             # Define optimization space
             if profile["type"] == "linear":
@@ -271,7 +272,7 @@ class MultipleOptimizer:
                     }
 
                 ])
-            elif self.profile['type'] == "small_min":
+            elif profile['type'] == "small_min":
                 space.extend([
                     {
                         "name": "a",
