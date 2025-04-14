@@ -419,7 +419,7 @@ class MultipleOptimizer:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
                     axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'],
-                                 label=f"{profile['label']} (N={result['best_N']})")
+                                 label=f"{profile['label']}")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
                     axes[i].set_xlabel('t')
