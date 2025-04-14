@@ -147,7 +147,7 @@ class FokkerPlanckSolver:
                 capture_output=True,
                 text=True
             )
-            print(f"Calculation for N={N} completed!")
+            print(f"Calculation for N={N}, params: {params} completed!")
 
         except subprocess.CalledProcessError as e:
             print(f"Error running program for N={N}: {e}")

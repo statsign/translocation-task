@@ -182,7 +182,7 @@ class MultipleOptimizer:
         if not self.reference_models:
             print("ERROR: Target not computed!")
 
-        N_value = int(theta[0])
+        N_value = self.N_ref
         profile = next(
             (p for p in self.profiles if p['name'] == profile_name), None)
 
@@ -190,15 +190,11 @@ class MultipleOptimizer:
         params = profile['params'].copy()
 
         if profile['type'] == "linear":
-            if len(theta) > 1:
-                params['slope'] = theta[1]
+            if len(theta) > 0:
+                params['slope'] = theta[0]
         elif profile['type'] == "quadratic":
-            if len(theta) > 1:
-                params['a'] = theta[1]
-                if len(theta) > 2:
-                    params['b'] = theta[2]
-                    if len(theta) > 3:
-                        params['c'] = theta[3]
+            if len(theta) > 0:
+                params['a'] = theta[0]
 
         # Run Fortran program for this params
         result = self.solver.run_fp(
@@ -247,18 +243,6 @@ class MultipleOptimizer:
                         "domain": (-0.02, 0.02),
                         "dimensionality": 1,
                     },
-                    {
-                        "name": "b",
-                        "type": "continuous",
-                        "domain": (0, 51),
-                        "dimensionality": 1,
-                    },
-                    {
-                        "name": "c",
-                        "type": "continuous",
-                        "domain": (-10, 1),
-                        "dimensionality": 1,
-                    }
 
                 ]
             elif profile['type'] == "small_min":
@@ -269,18 +253,6 @@ class MultipleOptimizer:
                         "domain": [0.001, 0.1],
                         "dimensionality": 1,
                     },
-                    {
-                        "name": "t",
-                        "type": "continuous",
-                        "domain": [0.0001, 0.01],
-                        "dimensionality": 1,
-                    },
-                    {
-                        "name": "c",
-                        "type": "continuous",
-                        "domain": [-0.001, 0.001],
-                        "dimensionality": 1,
-                    }
                 ]
 
             print(f"\nStarting optimization for {profile['label']}")
@@ -330,26 +302,28 @@ class MultipleOptimizer:
                         max_iter=max_iter, max_time=max_time, eps=tolerance, verbosity=True)
 
                     best_params = bo.x_opt
+                    print(best_params)
                     opt_loss = bo.fx_opt
 
                     optimized_params = profile['params'].copy()
 
                     if profile["type"] == "linear":
-                        if len(best_params) > 1:
+                        if len(best_params) > 0:
                             optimized_params['slope'] = best_params[0]
 
                     elif profile["type"] == "quadratic":
-                        if len(best_params) > 1:
+                        if len(best_params) > 0:
                             optimized_params['a'] = best_params[0]
-                            if len(best_params) > 2:
-                                optimized_params['b'] = best_params[1]
-                                if len(best_params) > 3:
-                                    optimized_params['c'] = best_params[2]
 
                     # Print the current best result
                     print(f"Iteration: {(i + 1) * 5}")
                     print(f"Objective function value: {opt_loss}")
                     print(f"Parameters: {optimized_params}")
+
+                    if opt_loss == 0:
+                        print(
+                            f"Optimization stopped: Best params: {best_params}")
+                        break
 
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params, log_scale=self.log_scale)
@@ -363,15 +337,11 @@ class MultipleOptimizer:
 
             optimized_params = profile['params'].copy()
             if profile['type'] == "linear":
-                if len(best_params) > 1:
-                    optimized_params['slope'] = best_params[1]
+                if len(best_params) > 0:
+                    optimized_params['slope'] = best_params[0]
             elif profile['type'] == "quadratic":
-                if len(best_params) > 1:
-                    optimized_params['a'] = best_params[1]
-                    if len(best_params) > 2:
-                        optimized_params['b'] = best_params[2]
-                        if len(best_params) > 3:
-                            optimized_params['c'] = best_params[3]
+                if len(best_params) > 0:
+                    optimized_params['a'] = best_params[0]
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params, log_scale=self.log_scale)
@@ -419,7 +389,7 @@ class MultipleOptimizer:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
                     axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'],
-                                 label=f"{profile['label']} (N={result['best_N']})")
+                                 label=f"{profile['label']}")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
                     axes[i].set_xlabel('t')
