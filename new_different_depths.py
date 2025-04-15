@@ -480,7 +480,7 @@ class ExperimentSeries:
                 # Initialize comparison
                 compare = CompareProfiles(profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
 
-                results = compare.run_multiple_simulations(N)
+                fp_results = compare.run_multiple_simulations(N)
 
                 # Initialize optimizer
                 optimizer = MultipleOptimizer(
@@ -495,7 +495,7 @@ class ExperimentSeries:
                         max_iter=max_iter, initial_points=initial_points)
 
                     exp_results[N] = {
-                        'simulation_results': results,
+                        'simulation_results': fp_results,
                         'optimization_results': opt_results
                     }
                 else:
