@@ -37,7 +37,7 @@ class CompareProfiles:
         for profile in self.profiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
-                name=profile['name'], log_scale=self.log_scale)
+                name=f"{profile['name']}_exp{self.experiment_id}", log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -64,7 +64,7 @@ class CompareProfiles:
             axes[i].legend(loc='best')
 
         # plt.tight_layout()
-        imgname = f"profiles_{N}_exp{self.experiment_id}"
+        imgname = f"profiles_exp{self.experiment_id}_{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -101,7 +101,7 @@ class CompareProfiles:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
 
-        imgname = f"pdfs_{results[0]['N']}_exp{self.experiment_id}"
+        imgname = f"pdfs_exp{self.experiment_id}_{results[0]['N']}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -180,6 +180,7 @@ class MultipleOptimizer:
                 print(
                     f"Failed to compute reference model for {profile['label']}")
                 return False
+        return True
 
     def loss_function(self, theta, profile_name):
         theta = theta.flatten()
@@ -317,6 +318,7 @@ class MultipleOptimizer:
             max_time = None
             max_iter = 10
             tolerance = 1e-8  # Distance between two consecutive observations
+            best_params = None
 
             try:
                 for i in range(10):
