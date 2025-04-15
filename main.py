@@ -158,7 +158,7 @@ class FokkerPlanckSolver:
                 [binary_path],
                 capture_output=True,
                 text=True,
-                cwd=self.data_folder
+                cwd=data_folder
             )
             print(f"Calculation for N={N}, params: {params} completed!")
 
