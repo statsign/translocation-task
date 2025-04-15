@@ -12,3 +12,4 @@ output
 *.sh
 *.out
 *.err
+*.json

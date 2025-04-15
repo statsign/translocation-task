@@ -113,7 +113,9 @@ class FokkerPlanckSolver:
         dt = []
         F = []
 
-        with open("new_input.txt", "w", encoding="UTF-8") as fin:
+        path = os.path.join(data_folder, "new_input.txt")
+
+        with open(path, "w", encoding="UTF-8") as fin:
             fin.write(f'{N} {z}\n')
             fin.write(
                 f"{self.timesteps} {self.dt} {self.timedisplay} {self.intdisplay}\n")
@@ -148,12 +150,15 @@ class FokkerPlanckSolver:
         # Generate input profile
         self.gen_profile(N, profile_type, params)
 
+        binary_path = os.path.join(os.getcwd(), "output")
+
         # Run Fortran program
         try:
             subprocess.run(
-                ["./output"],
+                [binary_path],
                 capture_output=True,
-                text=True
+                text=True,
+                cwd=self.data_folder
             )
             print(f"Calculation for N={N}, params: {params} completed!")
 
@@ -178,8 +183,11 @@ class FokkerPlanckSolver:
         Returns:
             Dictionary with parsed results
         """
+
+        path = os.path.join(self.data_folder, "new_output.txt")
+
         try:
-            with open("new_output.txt", 'r', encoding='UTF-8') as file:
+            with open(path, 'r', encoding='UTF-8') as file:
                 lines = file.readlines()
 
                 # Parse success and failure rates/times
@@ -230,7 +238,7 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
-                filename = name + f"_{N}" + "_out" + '.npz'
+                filename = name + f"_N{N}" + "_out" + '.npz'
 
                 path = os.path.join(data_folder, filename)
 
@@ -273,7 +281,7 @@ class FokkerPlanckSolver:
 
         fig, ax = plt.subplots()
 
-        filename = name + f"_{result['N']}" + "_out" + '.npz'
+        filename = name + f"_N{result['N']}" + "_out" + '.npz'
         path = os.path.join(data_folder, filename)
 
         try:
@@ -308,9 +316,7 @@ class BayesOptimizer:
         self.N_ref = N_ref
         self.reference_model = None
 
-        # Initialize log file
-        with open("optimization_log.txt", "w") as f:
-            f.write(f"Reference N: {N_ref}\n\n")
+
 
     def compute_reference_model(self, name="pr"):
         print(f"Computed reference model for N_ref={self.N_ref}")
@@ -343,9 +349,7 @@ class BayesOptimizer:
 
         difference = np.mean((current_value - target)**2)  # mse
 
-        # Write to log file
-        with open("optimization_log.txt", "a") as f:
-            f.write(f"N={N_value}, Loss={difference}\n")
+
 
         return np.array([[difference]])
 

@@ -6,6 +6,8 @@ import traceback
 import os
 import glob
 from cycler import cycler
+import json
+import argparse
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
@@ -51,7 +53,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(2, 3)
+        fig, axes = plt.subplots(3, 1)
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -73,11 +75,11 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(3, 2)
+        fig, axes = plt.subplots(3, 1)
         axes = axes.flatten()
 
         for i, result in enumerate(results):
-            filename = f"{result['name']}_exp{self.experiment_id}_{N}_out.npz"
+            filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             path = os.path.join(data_folder, filename)
             try:
                 with np.load(path) as data:
@@ -118,7 +120,7 @@ class CompareProfiles:
         ax.set_prop_cycle(cycler(color=colors) + cycler(linestyle=linestyles))
 
         for result in results:
-            filename = f"{result['name']}_exp{self.experiment_id}_{N}_out.npz"
+            filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             path = os.path.join(data_folder, filename)
             try:
                 with np.load(path) as data:
@@ -209,17 +211,12 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=f"{profile['name']}_exp{self.experiment_id}_opt", log_scale=self.log_scale)
+            name=f"{profile['name']}_exp{self.experiment_id}_N{N_value}_opt", log_scale=self.log_scale)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
 
         difference = np.mean((current_value - target)**2)  # mse
-
-        # Write to log file
-        with open(f"optimization_log_exp{self.experiment_id}.txt", "a") as f:
-            f.write(
-                f"Profile={profile['label']}, N={N_value}, Params={params}, Loss={difference}\n")
 
         return np.array([[difference]])
 
@@ -416,7 +413,7 @@ class MultipleOptimizer:
         # Compare all optimized results
         if results and plot_results:
 
-            fig, axes = plt.subplots(nrows=2, ncols=3)
+            fig, axes = plt.subplots(nrows=3, ncols=1)
             axes = axes.flatten()
             fig.suptitle(
                 f"Different optimized profiles (Experiment {self.experiment_id}):")
@@ -436,7 +433,7 @@ class MultipleOptimizer:
 
             # plt.tight_layout()
             path = os.path.join(
-                images_folder, f"opt_result_exp{self.experiment_id}")
+                images_folder, f"opt_result_exp{self.experiment_id}_N{self.N_ref}")
             plt.savefig(path)
             plt.close()
 
@@ -450,7 +447,7 @@ class ExperimentSeries:
 
         Args:
             solver: FokkerPlanckSolver instance
-            profile_sets: List of profile sets 
+            profile_sets: List of profile sets
             N_values: List of N values to use in experiments (if None, use default N=50)
             log_scale: Whether to use log scale
         """
@@ -480,7 +477,8 @@ class ExperimentSeries:
                 print(f"\nRunning experiment {exp_id} with N={N}")
 
                 # Initialize comparison
-                compare = CompareProfiles(profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
+                compare = CompareProfiles(
+                    profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
 
                 fp_results = compare.run_multiple_simulations(N)
 
@@ -513,99 +511,128 @@ class ExperimentSeries:
         self.create_summary_report(results)
 
         return results
-    
+
     def create_summary_report(self, results):
-            """Create a summary report of all experiments"""
-            with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
-                f.write("Experiment Summary Report\n")
-                f.write("=" * 50 + "\n\n")
-                
-                for exp_id in range(len(self.profile_sets)):
-                    exp_key = f'experiment_{exp_id}'
-                    if exp_key in results:
-                        f.write(f"Experiment {exp_id}:\n")
-                        f.write("-" * 30 + "\n")
-                        
-                        for N in self.N_values:
-                            if N in results[exp_key]:
-                                f.write(f"  N={N}:\n")
-                                
-                                if 'optimization_results' in results[exp_key][N]:
-                                    opt_results = results[exp_key][N]['optimization_results']
-                                    f.write("    Optimization Results:\n")
-                                    
-                                    for profile_name, result in opt_results.items():
-                                        f.write(f"      Profile: {profile_name}\n")
-                                        f.write(f"      Best Loss: {result['best_loss']}\n")
-                                        f.write(f"      Best Params: {result['best_params']}\n")
-                                        f.write("\n")
-                                
-                                f.write("\n")
-                        
-                        f.write("\n")
+        """Create a summary report of all experiments"""
+        with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
+            f.write("Experiment Summary Report\n")
+            f.write("=" * 50 + "\n\n")
 
+            for exp_id in range(len(self.profile_sets)):
+                exp_key = f'experiment_{exp_id}'
+                if exp_key in results:
+                    f.write(f"Experiment {exp_id}:\n")
+                    f.write("-" * 30 + "\n")
 
-# Define different profile types and parameters
-profiles_1 = [
-    {"type": "linear", "params": {"slope": -0.1},
-        "label": "linear (slope=-0.1)", "name": "pr1"},
-    {"type": "linear", "params": {"slope": -0.07},
-     "label": "linear (slope=-0.07)", "name": "pr2"},
-    {"type": "linear", "params": {"slope": -0.08},
-     "label": "linear (slope=-0.08)", "name": "pr3"},
-    {"type": "quadratic", "params": {"a": 0.007, "b": 25, "c": -4},
-        "label": "Quadratic (a=0.007)", "name": "pr4"},
-    {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
-        "label": "Quadratic (a=0.008)", "name": "pr5"},
-    {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
-     "label": "Quadratic (a=0.01)", "name": "pr6"},
-]
+                    for N in self.N_values:
+                        if N in results[exp_key]:
+                            f.write(f"  N={N}:\n")
 
+                            if 'optimization_results' in results[exp_key][N]:
+                                opt_results = results[exp_key][N]['optimization_results']
+                                f.write("    Optimization Results:\n")
 
-profiles_2 = [
-    {"type": "quadratic", "params": {"a": 0.012, "b": 25, "c": -7},
-        "label": "Quadratic (a=0.012)", "name": "pr7"},
-    {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
-        "label": "Quadratic (a=0.008)", "name": "pr5"},
-    {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
-     "label": "Quadratic (a=0.01)", "name": "pr6"},
-    {"type": "gauss", "params": {"A": 1},
-        "label": "Gauss (A=1)", "name": "pr8"},
-    {"type": "gauss", "params": {"A": 3},
-        "label": "Gauss (A=3)", "name": "pr9"},
-    {"type": "gauss", "params": {"A": 8},
-     "label": "Gauss (A=8)", "name": "pr10"},
-]
+                                for profile_name, result in opt_results.items():
+                                    f.write(
+                                        f"      Profile: {profile_name}\n")
+                                    f.write(
+                                        f"      Best Loss: {result['best_loss']}\n")
+                                    f.write(
+                                        f"      Best Params: {result['best_params']}\n")
+                                    f.write("\n")
+
+                            f.write("\n")
+
+                    f.write("\n")
+
 
 # Example usage
 if __name__ == "__main__":  # Preventing unwanted code execution during import
-    # Initialize solver
-    solver = FokkerPlanckSolver()
 
-    # Create an experiment series
-    experiment_series = ExperimentSeries(
-        solver=solver,
-        profile_sets=[profiles_1, profiles_2],
-        N_values=[50, 100],
-        log_scale=True
+    parser = argparse.ArgumentParser(
+        description="Run the experiment with profiles in .sh file")
+    parser.add_argument(
+        "--profiles",
+        type=str,
+        help="path to JSON file with profiles description"
     )
+    args = parser.parse_args()
 
-    # Run experiments
-    results = experiment_series.run_experiments()
+    if args.profiles_file:
+        with open(args.profiles_file, 'r') as f:
+            profiles = json.load(f)
 
-    print("All experiments completed successfully!")
+        solver = FokkerPlanckSolver()
+        compare = CompareProfiles(
+            profiles=profiles, log_scale=True, experiment_id=999)
+        
+        N_0 = args.N
+        compare.run_multiple_simulations(N_0)
 
-    '''
-    # Single experiment example 
-    compare = CompareProfiles(profiles=profiles_1, log_scale=True, experiment_id=999)
-    N_0 = 50
-    compare.run_multiple_simulations(N_0)
+        optimizer = MultipleOptimizer(
+            solver, N_ref=N_0, profiles=profiles, log_scale=True, experiment_id=999)
+        optimizer.compute_reference_models()
+        results = optimizer.run_multiple_opt()
+    else:
+        # Define different profile types and parameters
+        profiles_1 = [
+            {"type": "linear", "params": {"slope": -0.1},
+                "label": "linear (slope=-0.1)", "name": "pr1"},
+            {"type": "linear", "params": {"slope": -0.07},
+             "label": "linear (slope=-0.07)", "name": "pr2"},
+            {"type": "linear", "params": {"slope": -0.08},
+             "label": "linear (slope=-0.08)", "name": "pr3"},]
 
-    optimizer = MultipleOptimizer(
-        solver, N_ref=N_0, profiles=profiles_1, log_scale=True, experiment_id=999)
-    optimizer.compute_reference_models()
-    results = optimizer.run_multiple_opt()
-    '''
+        profiles_2 = [
+            {"type": "quadratic", "params": {"a": 0.007, "b": 25, "c": -4},
+                "label": "Quadratic (a=0.007)", "name": "pr4"},
+            {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
+                "label": "Quadratic (a=0.008)", "name": "pr5"},
+            {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
+             "label": "Quadratic (a=0.01)", "name": "pr6"},
+        ]
+
+        profiles_3 = [
+            {"type": "quadratic", "params": {"a": 0.012, "b": 25, "c": -7},
+                "label": "Quadratic (a=0.012)", "name": "pr7"},
+            {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
+                "label": "Quadratic (a=0.008)", "name": "pr5"},
+            {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
+             "label": "Quadratic (a=0.01)", "name": "pr6"},
+        ]
+
+        profiles_4 = [
+            {"type": "gauss", "params": {"A": 1},
+                "label": "Gauss (A=1)", "name": "pr8"},
+            {"type": "gauss", "params": {"A": 3},
+                "label": "Gauss (A=3)", "name": "pr9"},
+            {"type": "gauss", "params": {"A": 0},
+             "label": "Gauss (A=0)", "name": "pr10"},
+        ]
+
+        profiles_5 = [{"type": "gauss", "params": {"A": 1},
+                       "label": "Gauss (A=1)", "name": "pr8"},
+                      {"type": "gauss", "params": {"A": 3},
+                       "label": "Gauss (A=3)", "name": "pr9"},
+                      {"type": "gauss", "params": {"A": 8},
+                       "label": "Gauss (A=8)", "name": "pr11"},
+                      ]
+        # Initialize solver
+        solver = FokkerPlanckSolver()
+
+        # Create an experiment series
+        experiment_series = ExperimentSeries(
+            solver=solver,
+            profile_sets=[profiles_1, profiles_2,
+                          profiles_3, profiles_4, profiles_5],
+            N_values=[50, 100],
+            log_scale=True
+        )
+
+        # Run experiments
+        results = experiment_series.run_experiments()
+
+        print("All experiments completed successfully!")
 
     # Clean up data files
     npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
