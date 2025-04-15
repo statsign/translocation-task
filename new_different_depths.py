@@ -192,9 +192,14 @@ class MultipleOptimizer:
         if profile['type'] == "linear":
             if len(theta) > 0:
                 params['slope'] = theta[0]
+
         elif profile['type'] == "quadratic":
             if len(theta) > 0:
                 params['a'] = theta[0]
+        
+        elif profile['type'] == "gauss":
+            if len(theta) > 0:
+                params['A'] = theta[0]
 
         # Run Fortran program for this params
         result = self.solver.run_fp(
@@ -250,9 +255,20 @@ class MultipleOptimizer:
                     {
                         "name": "a",
                         "type": "continuous",
-                        "domain": [0.001, 0.1],
+                        "domain": (0.001, 0.1),
                         "dimensionality": 1,
                     },
+                ]
+            elif profile['type'] == "gauss":
+                space = [
+                    {
+                        "name": "A",
+                        "type": "continuous",
+                        "domain": (0, 8),
+                        "dimensionality": 1,
+
+                    }
+
                 ]
 
             print(f"\nStarting optimization for {profile['label']}")
@@ -315,6 +331,10 @@ class MultipleOptimizer:
                         if len(best_params) > 0:
                             optimized_params['a'] = best_params[0]
 
+                    elif profile['type'] == "gauss":
+                        if len(best_params) > 0:
+                            optimized_params['A'] = best_params[0]
+
                     # Print the current best result
                     print(f"Iteration: {(i + 1) * 5}")
                     print(f"Objective function value: {opt_loss}")
@@ -339,9 +359,14 @@ class MultipleOptimizer:
             if profile['type'] == "linear":
                 if len(best_params) > 0:
                     optimized_params['slope'] = best_params[0]
+
             elif profile['type'] == "quadratic":
                 if len(best_params) > 0:
                     optimized_params['a'] = best_params[0]
+
+            elif profile['type'] == "gauss":
+                if len(best_params) > 0:
+                    optimized_params['A'] = best_params[0]
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params, log_scale=self.log_scale)
@@ -351,7 +376,7 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'b-', label=f'Reference (N={self.N_ref})]')
+                        'b-', label=f'Reference (N={self.N_ref})')
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
@@ -405,7 +430,7 @@ class MultipleOptimizer:
 
 
 # Define different profile types and parameters
-profiles = [
+profiles_1 = [
     {"type": "linear", "params": {"slope": -0.1},
         "label": "linear (slope=-0.1)", "name": "pr1"},
     {"type": "linear", "params": {"slope": -0.07},
@@ -420,16 +445,47 @@ profiles = [
      "label": "Quadratic (a=0.01)", "name": "pr6"},
 ]
 
+
+profiles_2 = [
+    {"type": "quadratic", "params": {"a": 0.012, "b": 25, "c": -7},
+        "label": "Quadratic (a=0.012)", "name": "pr7"},
+    {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
+        "label": "Quadratic (a=0.008)", "name": "pr5"},
+    {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
+     "label": "Quadratic (a=0.01)", "name": "pr6"},
+    {"type": "gauss", "params": {"A": 1},
+        "label": "Gauss (A=1)", "name": "pr8"},
+    {"type": "gauss", "params": {"a": 3},
+        "label": "Gauss (A=3)", "name": "pr9"},
+    {"type": "gauss", "params": {"a": 8},
+     "label": "Gauss (A=8)", "name": "pr10"},
+]
+
 # Example usage
 if __name__ == "__main__":  # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
-    compare = CompareProfiles(profiles=profiles, log_scale=True)
+    compare = CompareProfiles(profiles=profiles_1, log_scale=True)
 
     # Initialize optimizer
     N_0 = 50
     optimizer = MultipleOptimizer(
-        solver, N_ref=N_0, profiles=profiles, log_scale=True)
+        solver, N_ref=N_0, profiles=profiles_1, log_scale=True)
+
+    # Compute reference models
+    optimizer.compute_reference_models()
+
+    # Plot reference model profile and distribution
+    compare.run_multiple_simulations(N_0)
+
+    # Run optimization
+    results = optimizer.run_multiple_opt()
+
+    compare = CompareProfiles(profiles=profiles_2, log_scale=True)
+
+    N_0 = 50
+    optimizer = MultipleOptimizer(
+        solver, N_ref=N_0, profiles=profiles_2, log_scale=True)
 
     # Compute reference models
     optimizer.compute_reference_models()
@@ -445,3 +501,8 @@ npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
 
 for file in npz_files:
     os.remove(file)
+
+
+    
+
+
