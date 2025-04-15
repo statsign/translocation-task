@@ -556,16 +556,21 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         type=str,
         help="path to JSON file with profiles description"
     )
+    parser.add_argument(
+    "--N",
+    type=int,
+    default=50,
+    help="Set the value of N (default: 50)"
+    )
     args = parser.parse_args()
 
-    if args.profiles_file:
-        with open(args.profiles_file, 'r') as f:
-            profiles = json.load(f)
+    if args.profiles:
+        profiles = json.loads(args.profiles)
 
         solver = FokkerPlanckSolver()
         compare = CompareProfiles(
             profiles=profiles, log_scale=True, experiment_id=999)
-        
+
         N_0 = args.N
         compare.run_multiple_simulations(N_0)
 
