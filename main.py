@@ -36,7 +36,7 @@ class FokkerPlanckSolver:
         path = os.path.join(data_folder, "output")
         try:
             compile_process = subprocess.run(
-                ["gfortran", "fp.f90", "-o", "output", path],
+                ["gfortran", "fp.f90", "-o", path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
