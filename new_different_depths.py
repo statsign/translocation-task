@@ -512,35 +512,35 @@ class ExperimentSeries:
 
         return results
     
-def create_summary_report(self, results):
-        """Create a summary report of all experiments"""
-        with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
-            f.write("Experiment Summary Report\n")
-            f.write("=" * 50 + "\n\n")
-            
-            for exp_id in range(len(self.profile_sets)):
-                exp_key = f'experiment_{exp_id}'
-                if exp_key in results:
-                    f.write(f"Experiment {exp_id}:\n")
-                    f.write("-" * 30 + "\n")
-                    
-                    for N in self.N_values:
-                        if N in results[exp_key]:
-                            f.write(f"  N={N}:\n")
-                            
-                            if 'optimization_results' in results[exp_key][N]:
-                                opt_results = results[exp_key][N]['optimization_results']
-                                f.write("    Optimization Results:\n")
+    def create_summary_report(self, results):
+            """Create a summary report of all experiments"""
+            with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
+                f.write("Experiment Summary Report\n")
+                f.write("=" * 50 + "\n\n")
+                
+                for exp_id in range(len(self.profile_sets)):
+                    exp_key = f'experiment_{exp_id}'
+                    if exp_key in results:
+                        f.write(f"Experiment {exp_id}:\n")
+                        f.write("-" * 30 + "\n")
+                        
+                        for N in self.N_values:
+                            if N in results[exp_key]:
+                                f.write(f"  N={N}:\n")
                                 
-                                for profile_name, result in opt_results.items():
-                                    f.write(f"      Profile: {profile_name}\n")
-                                    f.write(f"      Best Loss: {result['best_loss']}\n")
-                                    f.write(f"      Best Params: {result['best_params']}\n")
-                                    f.write("\n")
-                            
-                            f.write("\n")
-                    
-                    f.write("\n")
+                                if 'optimization_results' in results[exp_key][N]:
+                                    opt_results = results[exp_key][N]['optimization_results']
+                                    f.write("    Optimization Results:\n")
+                                    
+                                    for profile_name, result in opt_results.items():
+                                        f.write(f"      Profile: {profile_name}\n")
+                                        f.write(f"      Best Loss: {result['best_loss']}\n")
+                                        f.write(f"      Best Params: {result['best_params']}\n")
+                                        f.write("\n")
+                                
+                                f.write("\n")
+                        
+                        f.write("\n")
 
 
 # Define different profile types and parameters
