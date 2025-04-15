@@ -184,7 +184,7 @@ class FokkerPlanckSolver:
             Dictionary with parsed results
         """
 
-        path = os.path.join(self.data_folder, "new_output.txt")
+        path = os.path.join(data_folder, "new_output.txt")
 
         try:
             with open(path, 'r', encoding='UTF-8') as file:
