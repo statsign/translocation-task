@@ -1,7 +1,6 @@
 from main import FokkerPlanckSolver
 import matplotlib.pyplot as plt
 import numpy as np
-import subprocess
 import GPyOpt
 import traceback
 import os
@@ -23,12 +22,13 @@ for file in png_files:
 
 
 class CompareProfiles:
-    def __init__(self, profiles, log_scale=False):
+    def __init__(self, profiles, log_scale=False, experiment_id=0):
 
         # Initialize solver
         self.solver = FokkerPlanckSolver()
         self.profiles = profiles
         self.log_scale = log_scale
+        self.experiment_id = experiment_id
 
     def run_multiple_simulations(self, N):
         self.plot_profiles(N)
@@ -36,7 +36,8 @@ class CompareProfiles:
         results = []
         for profile in self.profiles:
             result = self.solver.run_fp(
-                N, profile_type=profile['type'], params=profile['params'], name=profile['name'], log_scale=self.log_scale)
+                N, profile_type=profile['type'], params=profile['params'],
+                name=profile['name'], log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -63,7 +64,7 @@ class CompareProfiles:
             axes[i].legend(loc='best')
 
         # plt.tight_layout()
-        imgname = f"profiles_{N}"
+        imgname = f"profiles_{N}_exp{self.experiment_id}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -76,7 +77,7 @@ class CompareProfiles:
         axes = axes.flatten()
 
         for i, result in enumerate(results):
-            filename = result["name"] + f"_{N}" + '_out' + '.npz'
+            filename = f"{result['name']}_exp{self.experiment_id}_{N}_out.npz"
             path = os.path.join(data_folder, filename)
             try:
                 with np.load(path) as data:
@@ -100,7 +101,7 @@ class CompareProfiles:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
 
-        imgname = f"pdfs_{results[0]['N']}"
+        imgname = f"pdfs_{results[0]['N']}_exp{self.experiment_id}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -117,7 +118,7 @@ class CompareProfiles:
         ax.set_prop_cycle(cycler(color=colors) + cycler(linestyle=linestyles))
 
         for result in results:
-            filename = result["name"] + f"_{N}" + '_out' + '.npz'
+            filename = f"{result['name']}_exp{self.experiment_id}_{N}_out.npz"
             path = os.path.join(data_folder, filename)
             try:
                 with np.load(path) as data:
@@ -140,29 +141,32 @@ class CompareProfiles:
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
-        imgname = f"compare_pdfs_{results[0]['N']}"
+        imgname = f"compare_pdfs_{results[0]['N']}_exp{self.experiment_id}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
 
 
 class MultipleOptimizer:
-    def __init__(self, solver, profiles, N_ref=100, log_scale=False):
+    def __init__(self, solver, profiles, N_ref=100, log_scale=False, experiment_id=0):
         self.N_ref = N_ref
         self.reference_models = {}
         self.solver = solver
         self.multiple = CompareProfiles(profiles=profiles)
         self.profiles = profiles
         self.log_scale = log_scale
+        self.experiment_id = experiment_id
 
     def compute_reference_models(self):
-        print(f"Computing reference models for N_ref={self.N_ref}")
+        print(
+            f"Computing reference models for N_ref={self.N_ref}, Experiment {self.experiment_id}")
 
         results = []
         for profile in self.profiles:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
-                self.N_ref, profile['type'], profile['params'], name=profile['name'], log_scale=self.log_scale)
+                self.N_ref, profile['type'], profile['params'],
+                name=f"{profile['name']}_exp{self.experiment_id}", log_scale=self.log_scale)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -196,14 +200,15 @@ class MultipleOptimizer:
         elif profile['type'] == "quadratic":
             if len(theta) > 0:
                 params['a'] = theta[0]
-        
+
         elif profile['type'] == "gauss":
             if len(theta) > 0:
                 params['A'] = theta[0]
 
         # Run Fortran program for this params
         result = self.solver.run_fp(
-            N_value, profile['type'], params, log_scale=self.log_scale)
+            N_value, profile['type'], params,
+            name=f"{profile['name']}_exp{self.experiment_id}_opt", log_scale=self.log_scale)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -211,7 +216,7 @@ class MultipleOptimizer:
         difference = np.mean((current_value - target)**2)  # mse
 
         # Write to log file
-        with open("optimization_log.txt", "a") as f:
+        with open(f"optimization_log_exp{self.experiment_id}.txt", "a") as f:
             f.write(
                 f"Profile={profile['label']}, N={N_value}, Params={params}, Loss={difference}\n")
 
@@ -219,7 +224,7 @@ class MultipleOptimizer:
 
     def run_multiple_opt(self, max_iter=5, initial_points=50,  plot_results=True):
 
-        if self.reference_models is None:
+        if not self.reference_models:
             success = self.compute_reference_models()
             if not success:
                 print("ERROR: Cannot compute reference model")
@@ -271,7 +276,8 @@ class MultipleOptimizer:
 
                 ]
 
-            print(f"\nStarting optimization for {profile['label']}")
+            print(
+                f"\nStarting optimization for {profile['label']} (Experiment {self.experiment_id})")
 
             # Select randomly 50 points to use as the initial training set
             feasible_region = GPyOpt.Design_space(space=space)
@@ -336,7 +342,8 @@ class MultipleOptimizer:
                             optimized_params['A'] = best_params[0]
 
                     # Print the current best result
-                    print(f"Iteration: {(i + 1) * 5}")
+                    print(
+                        f"Experiment: {self.experiment_id}, Iteration: {(i + 1) * 5}")
                     print(f"Objective function value: {opt_loss}")
                     print(f"Parameters: {optimized_params}")
 
@@ -346,7 +353,8 @@ class MultipleOptimizer:
                         break
 
                     best_result = self.solver.run_fp(
-                        self.N_ref, profile['type'], optimized_params, log_scale=self.log_scale)
+                        self.N_ref, profile['type'], optimized_params,
+                        name=f"{profile_name}_exp{self.experiment_id}_best", log_scale=self.log_scale)
 
                     # input("Press Enter to continue...")
 
@@ -369,7 +377,8 @@ class MultipleOptimizer:
                     optimized_params['A'] = best_params[0]
 
             best_result = self.solver.run_fp(
-                self.N_ref, profile['type'], optimized_params, log_scale=self.log_scale)
+                self.N_ref, profile['type'], optimized_params,
+                name=f"{profile_name}_exp{self.experiment_id}_final", log_scale=self.log_scale)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
@@ -381,11 +390,12 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
                 ax.set_ylabel('PDF')
-                ax.set_title(f'{profile["label"]}')
+                ax.set_title(
+                    f'{profile["label"]} (Experiment {self.experiment_id})')
                 ax.legend()
                 plt.tight_layout()
 
-                imgname = f"current_opt_{profile['name']}"
+                imgname = f"current_opt_{profile['name']}_exp{self.experiment_id}"
                 img_path = os.path.join(images_folder, imgname)
                 plt.savefig(img_path)
                 plt.close()
@@ -397,16 +407,17 @@ class MultipleOptimizer:
                 'final_result': best_result
             }
 
-            print(f"Optimization completed for {profile['label']}:")
             print(
-                f"Optimized params = {optimized_params}, Loss = {opt_loss}")
+                f"Optimization completed for {profile['label']} (Experiment {self.experiment_id}):")
+            print(f"Optimized params = {optimized_params}, Loss = {opt_loss}")
 
         # Compare all optimized results
         if results and plot_results:
 
             fig, axes = plt.subplots(nrows=2, ncols=3)
             axes = axes.flatten()
-            fig.suptitle('Different optimized profiles')
+            fig.suptitle(
+                f"Different optimized profiles (Experiment {self.experiment_id}):")
 
             for i, profile in enumerate(self.profiles):
                 profile_name = profile['name']
@@ -422,11 +433,114 @@ class MultipleOptimizer:
                     axes[i].legend()
 
             # plt.tight_layout()
-            path = os.path.join(images_folder, "opt_result")
+            path = os.path.join(
+                images_folder, f"opt_result_exp{self.experiment_id}")
             plt.savefig(path)
             plt.close()
 
         return results
+
+
+class ExperimentSeries:
+    def __init__(self, solver, profile_sets, N_values=None, log_scale=False):
+        """
+        Run a series of experiments with different profile sets
+
+        Args:
+            solver: FokkerPlanckSolver instance
+            profile_sets: List of profile sets 
+            N_values: List of N values to use in experiments (if None, use default N=50)
+            log_scale: Whether to use log scale
+        """
+        self.solver = solver
+        self.profile_sets = profile_sets
+        self.N_values = N_values if N_values else [50]
+        self.log_scale = log_scale
+
+    def run_experiments(self, max_iter=5, initial_points=50):
+        """
+        Run a series of experiments
+
+        Args:
+            max_iter: Maximum number of iterations for optimization
+            initial_points: Number of initial points for optimization
+        """
+        results = {}
+
+        for exp_id, profiles in (self.profile_sets):
+            print(f"\n{'='*50}")
+            print(f"Starting Experiment {exp_id}")
+            print(f"{'='*50}")
+
+            exp_results = {}
+
+            for N in self.N_values:
+                print(f"\nRunning experiment {exp_id} with N={N}")
+
+                # Initialize comparison
+                compare = CompareProfiles(profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
+
+                results = compare.run_multiple_simulations(N)
+
+                # Initialize optimizer
+                optimizer = MultipleOptimizer(
+                    self.solver, N_ref=N, profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
+
+                # Compute reference models
+                success = optimizer.compute_reference_models()
+
+                if success:
+                    # Run optimization
+                    opt_results = optimizer.run_multiple_opt(
+                        max_iter=max_iter, initial_points=initial_points)
+
+                    exp_results[N] = {
+                        'simulation_results': results,
+                        'optimization_results': opt_results
+                    }
+                else:
+                    print(
+                        f"Failed to compute reference models for N={N}, experiment {exp_id}")
+
+        results[f'experiment_{exp_id}'] = exp_results
+
+        print(f"\n{'='*50}")
+        print(f"Experiment {exp_id} completed")
+        print(f"{'='*50}")
+
+        self.create_summary_report(results)
+
+        return results
+    
+def create_summary_report(self, results):
+        """Create a summary report of all experiments"""
+        with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
+            f.write("Experiment Summary Report\n")
+            f.write("=" * 50 + "\n\n")
+            
+            for exp_id in range(len(self.profile_sets)):
+                exp_key = f'experiment_{exp_id}'
+                if exp_key in results:
+                    f.write(f"Experiment {exp_id}:\n")
+                    f.write("-" * 30 + "\n")
+                    
+                    for N in self.N_values:
+                        if N in results[exp_key]:
+                            f.write(f"  N={N}:\n")
+                            
+                            if 'optimization_results' in results[exp_key][N]:
+                                opt_results = results[exp_key][N]['optimization_results']
+                                f.write("    Optimization Results:\n")
+                                
+                                for profile_name, result in opt_results.items():
+                                    f.write(f"      Profile: {profile_name}\n")
+                                    f.write(f"      Best Loss: {result['best_loss']}\n")
+                                    f.write(f"      Best Params: {result['best_params']}\n")
+                                    f.write("\n")
+                            
+                            f.write("\n")
+                    
+                    f.write("\n")
 
 
 # Define different profile types and parameters
@@ -455,9 +569,9 @@ profiles_2 = [
      "label": "Quadratic (a=0.01)", "name": "pr6"},
     {"type": "gauss", "params": {"A": 1},
         "label": "Gauss (A=1)", "name": "pr8"},
-    {"type": "gauss", "params": {"a": 3},
+    {"type": "gauss", "params": {"A": 3},
         "label": "Gauss (A=3)", "name": "pr9"},
-    {"type": "gauss", "params": {"a": 8},
+    {"type": "gauss", "params": {"A": 8},
      "label": "Gauss (A=8)", "name": "pr10"},
 ]
 
@@ -465,44 +579,33 @@ profiles_2 = [
 if __name__ == "__main__":  # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
-    compare = CompareProfiles(profiles=profiles_1, log_scale=True)
 
-    # Initialize optimizer
+    # Create an experiment series
+    experiment_series = ExperimentSeries(
+        solver=solver,
+        profile_sets=[profiles_1, profiles_2],
+        N_values=[50, 100],
+        log_scale=True
+    )
+
+    # Run experiments
+    results = experiment_series.run_experiments()
+
+    print("All experiments completed successfully!")
+
+    '''
+    # Single experiment example 
+    compare = CompareProfiles(profiles=profiles_1, log_scale=True, experiment_id=999)
     N_0 = 50
-    optimizer = MultipleOptimizer(
-        solver, N_ref=N_0, profiles=profiles_1, log_scale=True)
-
-    # Compute reference models
-    optimizer.compute_reference_models()
-
-    # Plot reference model profile and distribution
     compare.run_multiple_simulations(N_0)
 
-    # Run optimization
-    results = optimizer.run_multiple_opt()
-
-    compare = CompareProfiles(profiles=profiles_2, log_scale=True)
-
-    N_0 = 50
     optimizer = MultipleOptimizer(
-        solver, N_ref=N_0, profiles=profiles_2, log_scale=True)
-
-    # Compute reference models
+        solver, N_ref=N_0, profiles=profiles_1, log_scale=True, experiment_id=999)
     optimizer.compute_reference_models()
-
-    # Plot reference model profile and distribution
-    compare.run_multiple_simulations(N_0)
-
-    # Run optimization
     results = optimizer.run_multiple_opt()
+    '''
 
-
-npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
-
-for file in npz_files:
-    os.remove(file)
-
-
-    
-
-
+    # Clean up data files
+    npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
+    for file in npz_files:
+        os.remove(file)
