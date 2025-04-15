@@ -467,7 +467,7 @@ class ExperimentSeries:
         """
         results = {}
 
-        for exp_id, profiles in (self.profile_sets):
+        for exp_id, profiles in enumerate(self.profile_sets):
             print(f"\n{'='*50}")
             print(f"Starting Experiment {exp_id}")
             print(f"{'='*50}")
