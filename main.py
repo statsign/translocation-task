@@ -32,9 +32,11 @@ class FokkerPlanckSolver:
 
     def compile_fortran(self):
         """Compiles the Fortran program"""
+
+        path = os.path.join(data_folder, "output")
         try:
             compile_process = subprocess.run(
-                ["gfortran", "fp.f90", "-o", "output"],
+                ["gfortran", "fp.f90", "-o", "output", path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
@@ -150,12 +152,12 @@ class FokkerPlanckSolver:
         # Generate input profile
         self.gen_profile(N, profile_type, params)
 
-        binary_path = os.path.join(os.getcwd(), "output")
+        path = os.path.join(data_folder, "output")
 
         # Run Fortran program
         try:
             subprocess.run(
-                [binary_path],
+                [path],
                 capture_output=True,
                 text=True,
                 cwd=data_folder
