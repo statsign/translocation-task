@@ -18,10 +18,6 @@ images_folder = os.path.join("/data1/val2204", "images", f"job_{job_id}")
 os.makedirs(data_folder, exist_ok=True)
 os.makedirs(images_folder, exist_ok=True)
 
-png_files = glob.glob(os.path.join(images_folder, '*.png'))
-
-for file in png_files:
-    os.remove(file)
 
 
 class CompareProfiles:
@@ -170,7 +166,7 @@ class MultipleOptimizer:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
-                name=f"{profile['name']}_exp{self.experiment_id}",
+                name=profile['name'],
                 log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
@@ -665,7 +661,3 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
 
         print("All experiments completed successfully!")
 
-    # Clean up data files
-    npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
-    for file in npz_files:
-        os.remove(file)

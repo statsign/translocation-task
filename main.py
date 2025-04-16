@@ -502,7 +502,3 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         plt.show()
 
 
-npz_files = glob.glob(os.path.join(data_folder, '*.npz'))
-
-for file in npz_files:
-    os.remove(file)
