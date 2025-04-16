@@ -163,10 +163,10 @@ class FokkerPlanckSolver:
                 text=True,
                 cwd=data_folder
             )
-            print(f"Calculation for N={N}, params: {params} completed!")
+            print(f"Calculation for profule : {profile_type}, N={N}, params: {params} completed!")
 
         except subprocess.CalledProcessError as e:
-            print(f"Error running program for N={N}: {e}")
+            print(f"Error running program for profule : {profile_type}, N={N}params: {params}: {e}")
             print(f"Stderr: {e.stderr}")
             return None
 
@@ -187,10 +187,10 @@ class FokkerPlanckSolver:
             Dictionary with parsed results
         """
 
-        path = os.path.join(data_folder, "new_output.txt")
+        data_path = os.path.join(data_folder, "new_output.txt")
 
         try:
-            with open(path, 'r', encoding='UTF-8') as file:
+            with open(data_path, 'r', encoding='UTF-8') as file:
                 lines = file.readlines()
 
                 # Parse success and failure rates/times
@@ -247,9 +247,9 @@ class FokkerPlanckSolver:
                     filename = f"{name}_N{N}_out.npz"
 
 
-                path = os.path.join(data_folder, filename)
+                filepath = os.path.join(data_folder, filename)
 
-                np.savez_compressed(path, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
+                np.savez_compressed(filepath, success_rate=results['success_rate'], failure_rate=results["failure_rate"], success_time=results["success_time"], failure_time=results["failure_time"], dt=results['dt'],
                                     pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
 
                 return results
