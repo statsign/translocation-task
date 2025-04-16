@@ -33,10 +33,11 @@ class FokkerPlanckSolver:
     def compile_fortran(self):
         """Compiles the Fortran program"""
 
-        path = os.path.join(data_folder, "output")
+        source_file = os.path.join(os.path.dirname(__file__), "fp.f90")
+        output_path = os.path.join(data_folder, "output")
         try:
             compile_process = subprocess.run(
-                ["gfortran", "fp.f90", "-o", path],
+                ["gfortran", source_file, "-o", output_path],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
