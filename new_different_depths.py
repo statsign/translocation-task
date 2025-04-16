@@ -52,7 +52,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots((3, 1), figsize=(9, 3))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 3))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -77,7 +77,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots((3, 1), figsize=(9, 3))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 3))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
