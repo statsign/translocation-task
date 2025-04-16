@@ -40,7 +40,7 @@ class CompareProfiles:
         for profile in self.profiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
-                name=f"{profile['name']}_exp{self.experiment_id}", 
+                name=f"{profile['name']}_exp{self.experiment_id}",
                 log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
@@ -170,7 +170,7 @@ class MultipleOptimizer:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
-                name=f"{profile['name']}_exp{self.experiment_id}", 
+                name=f"{profile['name']}_exp{self.experiment_id}",
                 log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
@@ -214,7 +214,7 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=f"{profile['name']}_exp{self.experiment_id}_N{N_value}_opt", 
+            name=f"{profile['name']}_exp{self.experiment_id}_N{N_value}_opt",
             log_scale=self.log_scale, exp_id=self.experiment_id)
 
         current_value = result['ptotal']
@@ -357,7 +357,7 @@ class MultipleOptimizer:
 
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
-                        name=f"{profile_name}_exp{self.experiment_id}_best", 
+                        name=f"{profile_name}_exp{self.experiment_id}_best",
                         log_scale=self.log_scale, exp_id=self.experiment_id)
 
                     # input("Press Enter to continue...")
@@ -382,7 +382,7 @@ class MultipleOptimizer:
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
-                name=f"{profile_name}_exp{self.experiment_id}_final", 
+                name=f"{profile_name}_exp{self.experiment_id}_final",
                 log_scale=self.log_scale, exp_id=self.experiment_id)
 
             if plot_results and best_result:
