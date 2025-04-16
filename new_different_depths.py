@@ -40,7 +40,8 @@ class CompareProfiles:
         for profile in self.profiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
-                name=f"{profile['name']}_exp{self.experiment_id}", log_scale=self.log_scale, exp_id=self.experiment_id)
+                name=f"{profile['name']}_exp{self.experiment_id}", 
+                log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -169,7 +170,8 @@ class MultipleOptimizer:
             print(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
-                name=f"{profile['name']}_exp{self.experiment_id}", log_scale=self.log_scale, exp_id=self.experiment_id)
+                name=f"{profile['name']}_exp{self.experiment_id}", 
+                log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -212,7 +214,8 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=f"{profile['name']}_exp{self.experiment_id}_N{N_value}_opt", log_scale=self.log_scale, exp_id=self.experiment_id)
+            name=f"{profile['name']}_exp{self.experiment_id}_N{N_value}_opt", 
+            log_scale=self.log_scale, exp_id=self.experiment_id)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -354,7 +357,8 @@ class MultipleOptimizer:
 
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
-                        name=f"{profile_name}_exp{self.experiment_id}_best", log_scale=self.log_scale, exp_id=self.experiment_id)
+                        name=f"{profile_name}_exp{self.experiment_id}_best", 
+                        log_scale=self.log_scale, exp_id=self.experiment_id)
 
                     # input("Press Enter to continue...")
 
@@ -378,7 +382,8 @@ class MultipleOptimizer:
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
-                name=f"{profile_name}_exp{self.experiment_id}_final", log_scale=self.log_scale, exp_id=self.experiment_id)
+                name=f"{profile_name}_exp{self.experiment_id}_final", 
+                log_scale=self.log_scale, exp_id=self.experiment_id)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
@@ -503,11 +508,11 @@ class ExperimentSeries:
                     print(
                         f"Failed to compute reference models for N={N}, experiment {exp_id}")
 
-        results[f'experiment_{exp_id}'] = exp_results
+            results[f'experiment_{exp_id}'] = exp_results
 
-        print(f"\n{'='*50}")
-        print(f"Experiment {exp_id} completed")
-        print(f"{'='*50}")
+            print(f"\n{'='*50}")
+            print(f"Experiment {exp_id} completed")
+            print(f"{'='*50}")
 
         self.create_summary_report(results)
 
@@ -540,13 +545,13 @@ class ExperimentSeries:
 
                                 data.append(row)
 
-                # Create DataFrame from the collected data
-                df = pd.DataFrame(data)
+        # Create DataFrame from the collected data
+        df = pd.DataFrame(data)
 
-                filename = f"{exp_id}.csv"
-                # Save to CSV file
-                output_path = os.path.join(data_folder, filename)
-                df.to_csv(output_path, index=False)
+        filename = f"{exp_id}.csv"
+        # Save to CSV file
+        output_path = os.path.join(data_folder, filename)
+        df.to_csv(output_path, index=False)
 
 
 # Example usage
@@ -563,6 +568,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     parser.add_argument(
         "--N",
         type=int,
+        nargs="+",
         default=[50],
         help="Set the value of N (default: 50)"
     )
