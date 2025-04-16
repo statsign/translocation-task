@@ -137,7 +137,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def run_fp(self, N, profile_type="linear", params=None, name="pr", log_scale=False):
+    def run_fp(self, N, profile_type="linear", params=None, name="pr", log_scale=False, exp_id=None):
         """
         Runs Fokker-Planck program with specified parameters
 
@@ -171,7 +171,7 @@ class FokkerPlanckSolver:
             return None
 
         # Read results
-        result = self.read_pdf(N, name, log_scale)
+        result = self.read_pdf(N, name, exp_id, log_scale)
         if result:
             result['N'] = int(N)
             result['profile_type'] = profile_type
@@ -179,7 +179,7 @@ class FokkerPlanckSolver:
 
         return result
 
-    def read_pdf(self, N, name="pr", log_scale=False):
+    def read_pdf(self, N, name="pr", exp_id=None, log_scale=False):
         """
         Reads results from output file
 
@@ -241,7 +241,11 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
-                filename = name + f"_N{N}" + "_out" + '.npz'
+                if exp_id is not None:
+                    filename = f"{name}_exp{exp_id}_N{N}_out.npz"
+                else:
+                    filename = f"{name}_N{N}_out.npz"
+
 
                 path = os.path.join(data_folder, filename)
 
