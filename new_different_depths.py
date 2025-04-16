@@ -8,6 +8,7 @@ import glob
 from cycler import cycler
 import json
 import argparse
+import pandas as pd
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
@@ -65,7 +66,7 @@ class CompareProfiles:
             axes[i].plot(zn, F, label=f"{profile['label']}")
             axes[i].legend(loc='best')
 
-        # plt.tight_layout()
+        plt.tight_layout()
         imgname = f"profiles_exp{self.experiment_id}_{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
@@ -103,7 +104,7 @@ class CompareProfiles:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
 
-        imgname = f"pdfs_exp{self.experiment_id}_{results[0]['N']}"
+        imgname = f"pdfs_exp{self.experiment_id}_N{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -143,7 +144,7 @@ class CompareProfiles:
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
-        imgname = f"compare_pdfs_{results[0]['N']}_exp{self.experiment_id}"
+        imgname = f"compare_pdfs_exp{self.experiment_id}_N{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -220,7 +221,7 @@ class MultipleOptimizer:
 
         return np.array([[difference]])
 
-    def run_multiple_opt(self, max_iter=5, initial_points=50,  plot_results=True):
+    def run_multiple_opt(self, initial_points=50,  plot_results=True):
 
         if not self.reference_models:
             success = self.compute_reference_models()
@@ -514,36 +515,38 @@ class ExperimentSeries:
 
     def create_summary_report(self, results):
         """Create a summary report of all experiments"""
-        with open(os.path.join(data_folder, "experiment_summary.txt"), "w") as f:
-            f.write("Experiment Summary Report\n")
-            f.write("=" * 50 + "\n\n")
+        # Create lists to store the data
+        data = []
 
-            for exp_id in range(len(self.profile_sets)):
-                exp_key = f'experiment_{exp_id}'
-                if exp_key in results:
-                    f.write(f"Experiment {exp_id}:\n")
-                    f.write("-" * 30 + "\n")
+        for exp_id in range(len(self.profile_sets)):
+            exp_key = f'experiment_{exp_id}'
+            if exp_key in results:
+                for N in self.N_values:
+                    if N in results[exp_key]:
+                        if 'optimization_results' in results[exp_key][N]:
+                            opt_results = results[exp_key][N]['optimization_results']
 
-                    for N in self.N_values:
-                        if N in results[exp_key]:
-                            f.write(f"  N={N}:\n")
+                            for profile_name, result in opt_results.items():
+                                # Add each result as a row in our data
+                                row = {
+                                    'N': N,
+                                    'Profile': profile_name,
+                                    'Loss function': result['best_loss'],
+                                }
 
-                            if 'optimization_results' in results[exp_key][N]:
-                                opt_results = results[exp_key][N]['optimization_results']
-                                f.write("    Optimization Results:\n")
+                                # Add best parameters as separate columns
+                                for param_name, param_value in result['best_params'].items():
+                                    row[f'Param_{param_name}'] = param_value
 
-                                for profile_name, result in opt_results.items():
-                                    f.write(
-                                        f"      Profile: {profile_name}\n")
-                                    f.write(
-                                        f"      Best Loss: {result['best_loss']}\n")
-                                    f.write(
-                                        f"      Best Params: {result['best_params']}\n")
-                                    f.write("\n")
+                                data.append(row)
 
-                            f.write("\n")
+                # Create DataFrame from the collected data
+                df = pd.DataFrame(data)
 
-                    f.write("\n")
+                filename = f"{exp_id}.csv"
+                # Save to CSV file
+                output_path = os.path.join(data_folder, filename)
+                df.to_csv(output_path, index=False)
 
 
 # Example usage
@@ -552,32 +555,52 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     parser = argparse.ArgumentParser(
         description="Run the experiment with profiles in .sh file")
     parser.add_argument(
-        "--profiles",
+        "--profiles_json",
         type=str,
-        help="path to JSON file with profiles description"
+        help="JSON string"
     )
+
     parser.add_argument(
-    "--N",
-    type=int,
-    default=50,
-    help="Set the value of N (default: 50)"
+        "--N",
+        type=int,
+        default=[50],
+        help="Set the value of N (default: 50)"
+    )
+
+    parser.add_argument(
+        "--log_scale",
+        action="store_true",
+        default=True,
+        help="Use logarithmic scale"
     )
     args = parser.parse_args()
 
-    if args.profiles:
-        profiles = json.loads(args.profiles)
+     # Initialize solver
+    solver = FokkerPlanckSolver()
 
-        solver = FokkerPlanckSolver()
-        compare = CompareProfiles(
-            profiles=profiles, log_scale=True, experiment_id=999)
-
-        N_0 = args.N
-        compare.run_multiple_simulations(N_0)
-
-        optimizer = MultipleOptimizer(
-            solver, N_ref=N_0, profiles=profiles, log_scale=True, experiment_id=999)
-        optimizer.compute_reference_models()
-        results = optimizer.run_multiple_opt()
+    if args.profiles_json:
+        # Parse the JSON string containing all profile sets
+        try:
+            profile_sets = json.loads(args.profiles_json)
+            
+            # Create an experiment series with the profile sets from JSON
+            experiment_series = ExperimentSeries(
+                solver=solver,
+                profile_sets=profile_sets,
+                N_values=args.N,
+                log_scale=args.log_scale
+            )
+            
+            # Run experiments
+            results = experiment_series.run_experiments()
+            
+            print("All experiments completed successfully!")
+            
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON profiles: {e}")
+        except Exception as e:
+            print(f"Error running experiments: {e}")
+            traceback.print_exc()
     else:
         # Define different profile types and parameters
         profiles_1 = [
@@ -616,14 +639,13 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         ]
 
         profiles_5 = [{"type": "gauss", "params": {"A": 1},
-                       "label": "Gauss (A=1)", "name": "pr8"},
+                       "label": "Gaussian (A=1)", "name": "pr8"},
                       {"type": "gauss", "params": {"A": 3},
-                       "label": "Gauss (A=3)", "name": "pr9"},
+                       "label": "Gaussian (A=3)", "name": "pr9"},
                       {"type": "gauss", "params": {"A": 8},
-                       "label": "Gauss (A=8)", "name": "pr11"},
+                       "label": "Gaussain (A=8)", "name": "pr11"},
                       ]
-        # Initialize solver
-        solver = FokkerPlanckSolver()
+
 
         # Create an experiment series
         experiment_series = ExperimentSeries(
