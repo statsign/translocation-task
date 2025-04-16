@@ -224,7 +224,7 @@ class MultipleOptimizer:
 
         return np.array([[difference]])
 
-    def run_multiple_opt(self, initial_points=50,  plot_results=True):
+    def run_multiple_opt(self, max_iter=10, initial_points=50,  plot_results=True):
 
         if not self.reference_models:
             success = self.compute_reference_models()
@@ -317,7 +317,6 @@ class MultipleOptimizer:
             )
 
             max_time = None
-            max_iter = 10
             tolerance = 1e-8  # Distance between two consecutive observations
             best_params = None
 
