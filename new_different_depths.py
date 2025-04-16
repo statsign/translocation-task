@@ -18,6 +18,7 @@ images_folder = os.path.join("/data1/val2204", "images", f"job_{job_id}")
 os.makedirs(data_folder, exist_ok=True)
 os.makedirs(images_folder, exist_ok=True)
 
+plt.style.use('ggplot')
 
 
 class CompareProfiles:
@@ -51,7 +52,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(3, 1)
+        fig, axes = plt.subplots((3, 1), figsize=(9, 3))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -62,6 +63,9 @@ class CompareProfiles:
 
             axes[i].plot(zn, F, label=f"{profile['label']}")
             axes[i].legend(loc='best')
+            axes[i].set_xlabel("s")
+            axes[i].set_ylabel("F(s)/kT")
+            axes[i].set_xlim(0, N+1) 
 
         plt.tight_layout()
         imgname = f"profiles_exp{self.experiment_id}_{N}"
@@ -73,7 +77,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(3, 1)
+        fig, axes = plt.subplots((3, 1), figsize=(9, 3))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -91,7 +95,10 @@ class CompareProfiles:
                 axes[i].plot(dt, total, 'b-', linewidth=2,
                              label=f"{result['label']}")
                 axes[i].set_xlabel('t')
-                axes[i].set_ylabel('PDF')
+                if self.log_scale == False:
+                    axes[i].set_ylabel('p(t)')
+                else:
+                    axes[i].set_ylabel('log(p(t))')
                 # axes[i].set_ylim(-50, 0)
                 axes[i].legend()
 
@@ -132,7 +139,10 @@ class CompareProfiles:
                 ax.plot(dt, total, linewidth=2,
                         label=f"{result['label']}")
                 ax.set_xlabel('t')
-                ax.set_ylabel('PDF')
+                if self.log_scale == False:
+                    ax.set_ylabel('p(t)')
+                else:
+                    ax.set_ylabel('log(p(t))')
                 ax.set_ylim(-15, -4)
                 ax.legend()
 
@@ -389,7 +399,10 @@ class MultipleOptimizer:
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
-                ax.set_ylabel('PDF')
+                if self.log_scale == False:
+                    ax.set_ylabel('p(t)')
+                else:
+                    ax.set_ylabel('log(p(t))')
                 ax.set_title(
                     f'{profile["label"]} (Experiment {self.experiment_id})')
                 ax.legend()
@@ -429,7 +442,10 @@ class MultipleOptimizer:
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
                     axes[i].set_xlabel('t')
-                    axes[i].set_ylabel('PDF')
+                    if self.log_scale == False:
+                        axes[i].set_ylabel('p(t)')
+                    else:
+                        axes[i].set_ylabel('log(p(t))')
                     axes[i].legend()
 
             # plt.tight_layout()
@@ -540,13 +556,13 @@ class ExperimentSeries:
 
                                 data.append(row)
 
-        # Create DataFrame from the collected data
-        df = pd.DataFrame(data)
+            # Create DataFrame from the collected data
+            df = pd.DataFrame(data)
 
-        filename = f"{exp_id}.csv"
-        # Save to CSV file
-        output_path = os.path.join(data_folder, filename)
-        df.to_csv(output_path, index=False)
+            filename = f"{exp_id}.csv"
+            # Save to CSV file
+            output_path = os.path.join(data_folder, filename)
+            df.to_csv(output_path, index=False)
 
 
 # Example usage

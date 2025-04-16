@@ -163,7 +163,7 @@ class FokkerPlanckSolver:
                 text=True,
                 cwd=data_folder
             )
-            print(f"Calculation for profule : {profile_type}, N={N}, params: {params} completed!")
+            print(f"Calculation for profile : {profile_type}, N={N}, params: {params} completed!")
 
         except subprocess.CalledProcessError as e:
             print(f"Error running program for profule : {profile_type}, N={N}params: {params}: {e}")
@@ -242,9 +242,9 @@ class FokkerPlanckSolver:
                 results['ptotal'] = ptotal
 
                 if exp_id is not None:
-                    filename = f"{name}_exp{exp_id}_N{N}_out.npz"
+                    filename = name + f"_exp{exp_id}_N{N}_out.npz"
                 else:
-                    filename = f"{name}_N{N}_out.npz"
+                    filename = name + f"_N{N}_out.npz"
 
 
                 filepath = os.path.join(data_folder, filename)

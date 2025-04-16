@@ -8,9 +8,9 @@ source venv/bin/activate
 
 PROFILES_JSON='[
   [
-    {"type": "linear", "params": {"slope": -0.1}, "label": "linear (slope=-0.1)", "name": "pr1"},
-    {"type": "linear", "params": {"slope": -0.07}, "label": "linear (slope=-0.07)", "name": "pr2"},
-    {"type": "linear", "params": {"slope": -0.08}, "label": "linear (slope=-0.08)", "name": "pr3"}
+    {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "pr1"},
+    {"type": "linear", "params": {"slope": -0.07}, "label": "Linear (slope=-0.07)", "name": "pr2"},
+    {"type": "linear", "params": {"slope": -0.08}, "label": "Linear (slope=-0.08)", "name": "pr3"}
   ],
   [
     {"type": "quadratic", "params": {"a": 0.007, "b": 25, "c": -4}, "label": "Quadratic (a=0.007)", "name": "pr4"},
