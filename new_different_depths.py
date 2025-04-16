@@ -52,7 +52,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 3))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(3, 9))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -77,7 +77,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(9, 3))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(3, 9))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -496,7 +496,8 @@ class ExperimentSeries:
                 # Initialize comparison
                 compare = CompareProfiles(
                     profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
-
+                
+                # Initial results
                 fp_results = compare.run_multiple_simulations(N)
 
                 # Initialize optimizer
@@ -525,44 +526,49 @@ class ExperimentSeries:
             print(f"Experiment {exp_id} completed")
             print(f"{'='*50}")
 
-            self.create_summary_report(results)
+            self.create_summary_report(exp_id, results)
 
         return results
 
-    def create_summary_report(self, results):
+    def create_summary_report(self, exp_id, results):
         """Create a summary report of all experiments"""
-        # Create lists to store the data
         data = []
 
-        for exp_id in range(len(self.profile_sets)):
-            exp_key = f'experiment_{exp_id}'
-            if exp_key in results:
-                for N in self.N_values:
-                    if N in results[exp_key]:
-                        if 'optimization_results' in results[exp_key][N]:
-                            opt_results = results[exp_key][N]['optimization_results']
+        key = f'experiment_{exp_id}'
+        exp_data = results.get(key, {})
+        for N, data in exp_data.items():
+            initial_list = data.get('simulation_results', []) or []
+            optimized_map = data.get('optimization_results', {}) or {}
+   
+            init_map = {r['name']: r for r in initial_list if r}
 
-                            for profile_name, result in opt_results.items():
-                                # Add each result as a row in our data
-                                row = {
-                                    'N': N,
-                                    'Profile': profile_name,
-                                    'Loss function': result['best_loss'],
-                                }
-
-                                # Add best parameters as separate columns
-                                for param_name, param_value in result['best_params'].items():
-                                    row[f'Param_{param_name}'] = param_value
-
-                                data.append(row)
-
-            # Create DataFrame from the collected data
+            if optimized_map:
+                for prof_name, opt in optimized_map.items():
+                    final = opt.get('final_result', {}) or {}
+                    initial = init_map.get(prof_name, {}) or {}
+                    row = {
+                        'Experiment': exp_id,
+                        'N': N,
+                        'Profile': prof_name,
+                        'Initial_success_time': initial.get('success_time'),
+                        'Optimized_success_time': final.get('success_time'),
+                        'Initial_failure_time': initial.get('failure_time'),
+                        'Optimized_failure_time': final.get('failure_time'),
+                        'Initial_success_rate': initial.get('success_rate'),
+                        'Optimized_success_rate': final.get('success_rate'),
+                        'Initial_failure_rate': initial.get('failure_rate'),
+                        'Optimized_failure_rate': final.get('failure_rate'),
+                    }
+   
+                    for p, v in opt.get('best_params', {}).items():
+                        row[f'Param_{p}'] = v
+                    data.append(row)
+        if data:
             df = pd.DataFrame(data)
-
-            filename = f"{exp_id}.csv"
-            # Save to CSV file
-            output_path = os.path.join(data_folder, filename)
-            df.to_csv(output_path, index=False)
+            csv_name = f"exp_{exp_id}_comparison.csv"
+            out_path = os.path.join(data_folder, csv_name)
+            df.to_csv(out_path, index=False)
+            print(f"Comparison CSV saved: {out_path}")
 
 
 # Example usage
