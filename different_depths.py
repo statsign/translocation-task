@@ -270,7 +270,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-8, 0),
+                        "domain": (-7, 0),
                         "dimensionality": 1,
 
                     },

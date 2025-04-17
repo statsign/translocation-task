@@ -30,7 +30,7 @@ PROFILES_JSON='[
   [
     {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "pr8"},
     {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr9"},
-    {"type": "gauss", "params": {"A": -8}, "label": "Gaussain (A=-8)", "name": "pr11"}
+    {"type": "gauss", "params": {"A": -7}, "label": "Gaussain (A=-7)", "name": "pr11"}
   ]
 ]'
 
