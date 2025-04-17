@@ -81,7 +81,7 @@ class FokkerPlanckSolver:
         elif profile_type == "gauss":
             A = params.get('A', -1)
             mu = params.get('mu', 20)
-            sigma = params.get('sigma', 2)
+            sigma = params.get('sigma', 3)
             k = params.get('k', -0.1)
             return i*k + A * np.exp(-((i - mu)**2) / (2 * sigma**2))
 

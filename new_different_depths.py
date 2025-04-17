@@ -55,7 +55,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 6))
+        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 6))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -80,7 +80,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 6))
+        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 6))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -204,6 +204,7 @@ class CompareProfiles:
                 ax.set_xlabel('t')
                 if self.log_scale == False:
                     ax.set_ylabel('p(t)')
+                    ax.set_ylim(auto=True)
                 else:
                     ax.set_ylabel('log(p(t))')
                     ax.set_ylim(-15, -4)
@@ -447,7 +448,7 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'g', label=f'Reference')
+                        'g-', label=f'Reference')
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
@@ -479,7 +480,7 @@ class MultipleOptimizer:
         # Compare all optimized results
         if results and plot_results:
 
-            fig, axes = plt.subplots(nrows=3, ncols=1)
+            fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16,6))
             axes = axes.flatten()
             fig.suptitle(
                 f"Different optimized profiles (Experiment {self.experiment_id}):")
@@ -489,10 +490,10 @@ class MultipleOptimizer:
                 if profile_name in results and results[profile_name]['final_result']:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
-                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'c',
-                                 label=f"{profile['label']}")
+                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'g',
+                                 label=f"{profile['label']}", linestyle='--')
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
-                                 'r-', label=f'Reference (N={self.N_ref})')
+                                 'r', label=f'Reference')
                     axes[i].set_xlabel('t')
                     if self.log_scale == False:
                         axes[i].set_ylabel('p(t)')
