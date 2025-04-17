@@ -52,7 +52,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(3, 9))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 10))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -77,7 +77,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(3, 9))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 10))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -362,7 +362,7 @@ class MultipleOptimizer:
 
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
-                        name={profile_name},
+                        name=profile_name,
                         log_scale=self.log_scale, exp_id=self.experiment_id)
 
                     # input("Press Enter to continue...")
@@ -532,14 +532,13 @@ class ExperimentSeries:
 
     def create_summary_report(self, exp_id, results):
         """Create a summary report of all experiments"""
-        data = []
+        rows = []
 
         key = f'experiment_{exp_id}'
         exp_data = results.get(key, {})
-        for N, data in exp_data.items():
-            initial_list = data.get('simulation_results', []) or []
-            optimized_map = data.get('optimization_results', {}) or {}
-   
+        for N, res in exp_data.items():
+            initial_list = res.get('simulation_results', []) or []
+            optimized_map = res.get('optimization_results', {}) or {}
             init_map = {r['name']: r for r in initial_list if r}
 
             if optimized_map:
@@ -562,9 +561,9 @@ class ExperimentSeries:
    
                     for p, v in opt.get('best_params', {}).items():
                         row[f'Param_{p}'] = v
-                    data.append(row)
-        if data:
-            df = pd.DataFrame(data)
+                    rows.append(row)
+        if rows:
+            df = pd.DataFrame(rows)
             csv_name = f"exp_{exp_id}_comparison.csv"
             out_path = os.path.join(data_folder, csv_name)
             df.to_csv(out_path, index=False)
