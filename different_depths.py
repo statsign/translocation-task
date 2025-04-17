@@ -221,7 +221,8 @@ class MultipleOptimizer:
 
                     # Run Fortran program for this params
         result = self.solver.run_fp(
-            N_value, profile['type'], params, log_scale=self.log_scale, exp_id=self.experiment_id)
+            N_value, profile['type'], params, 
+            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
