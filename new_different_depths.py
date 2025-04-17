@@ -48,11 +48,14 @@ class CompareProfiles:
         self.plot_multiple_pdf(results, N)
         self.compare_multiple_pdf(results, N)
 
+        self.plot_multiple_success(results, N)
+        self.plot_multiple_failure(results, N)
+
         return results
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 10))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(4, 12))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -77,7 +80,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(10, 10))
+        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(4, 12))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -111,6 +114,60 @@ class CompareProfiles:
         imgname = f"pdfs_exp{self.experiment_id}_N{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
+        plt.close()
+
+    def plot_multiple_success(self, results, N):
+        if not results:
+            print("No data to display")
+            return
+        fig, ax = plt.subplots(figsize=(6, 4))
+        for result in results:
+            filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
+            filepath = os.path.join(data_folder, filename)
+            try:
+                with np.load(filepath) as data:
+                    dt = data['dt']
+                    success = data['pTimeN']
+                    if success.ndim > 1:
+                        success = success.flatten()
+                ax.plot(dt, success, linewidth=2, label=f"{result['label']}")
+            except FileNotFoundError:
+                print(f"File {filename} not found!")
+            except Exception as e:
+                print(f"Error processing file {filename}: {str(e)}")
+        ax.set_xlabel('t')
+        ax.set_ylabel('log(p_T)' if self.log_scale else 'p_T')
+        ax.legend()
+        plt.tight_layout()
+        imgname = f"success_pdfs_exp{self.experiment_id}_{N}"
+        plt.savefig(os.path.join(images_folder, imgname))
+        plt.close()
+
+    def plot_multiple_failure(self, results, N):
+        if not results:
+            print("No data to display")
+            return
+        fig, ax = plt.subplots(figsize=(6, 4))
+        for result in results:
+            filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
+            filepath = os.path.join(data_folder, filename)
+            try:
+                with np.load(filepath) as data:
+                    dt = data['dt']
+                    failure = data['pTime0']
+                    if failure.ndim > 1:
+                        failure = failure.flatten()
+                ax.plot(dt, failure, linewidth=2, label=f"{result['label']}")
+            except FileNotFoundError:
+                print(f"File {filename} not found!")
+            except Exception as e:
+                print(f"Error processing file {filename}: {str(e)}")
+        ax.set_xlabel('t')
+        ax.set_ylabel('log(p_F)' if self.log_scale else 'p_F')
+        ax.legend()
+        plt.tight_layout()
+        imgname = f"failure_pdfs_exp{self.experiment_id}_{N}"
+        plt.savefig(os.path.join(images_folder, imgname))
         plt.close()
 
     def compare_multiple_pdf(self, results, N):
@@ -151,7 +208,7 @@ class CompareProfiles:
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
         plt.tight_layout()
-        imgname = f"compare_pdfs_exp{self.experiment_id}_N{N}"
+        imgname = f"compare_ptotal_exp{self.experiment_id}_N{N}"
         img_path = os.path.join(images_folder, imgname)
         plt.savefig(img_path)
         plt.close()
@@ -268,7 +325,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-8, 0),
+                        "domain": (-6, 6),
                         "dimensionality": 1,
 
                     }
@@ -538,7 +595,7 @@ class ExperimentSeries:
                         'Experiment': exp_id,
                         'N': N,
                         'Profile': prof_name,
-                        'Loss': opt.get('best_loss'),     
+                        'Loss': opt.get('best_loss'),
                         'Initial_success_time': initial.get('success_time'),
                         'Optimized_success_time': final.get('success_time'),
                         'Initial_failure_time': initial.get('failure_time'),

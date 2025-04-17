@@ -13,7 +13,7 @@ PROFILES_JSON='[
     {"type": "linear", "params": {"slope": -0.08}, "label": "Linear (slope=-0.08)", "name": "pr3"}
   ],
   [
-    {"type": "gauss", "params": {"A": -7}, "label": "Gaussian (A=-7)", "name": "pr4"},
+    {"type": "gauss", "params": {"A": -6}, "label": "Gaussian (A=-6)", "name": "pr4"},
     {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0) (linear)", "name": "pr5"},
     {"type": "gauss", "params": {"A": 0, "k": -0.2}, "label": "Gaussian (A=0) (linear)", "name": "pr6"}
   ],
@@ -25,7 +25,7 @@ PROFILES_JSON='[
     [
     {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "pr8"},
     {"type": "gauss", "params": {"A": 3}, "label": "Gaussian (A=3)", "name": "pr9"},
-    {"type": "gauss", "params": {"A": 7}, "label": "Gaussain (A=7)", "name": "pr11"}
+    {"type": "gauss", "params": {"A": 6}, "label": "Gaussain (A=6)", "name": "pr11"}
   ],
     [
     {"type": "linear", "params": {"slope": 0.1}, "label": "Linear (slope=0.1)", "name": "pr12"},
@@ -35,7 +35,12 @@ PROFILES_JSON='[
       [
     {"type": "gauss", "params": {"A": 1, "k": 0}, "label": "Gaussian (A=1)", "name": "pr15"},
     {"type": "gauss", "params": {"A": 3, "k": 0}, "label": "Gaussian (A=3)", "name": "pr16"},
-    {"type": "gauss", "params": {"A": 7, "k": 0}, "label": "Gaussain (A=7)", "name": "pr17"}
+    {"type": "gauss", "params": {"A": 6, "k": 0}, "label": "Gaussain (A=6)", "name": "pr17"}
+  ],
+  [
+    {"type": "gauss", "params": {"A": -1, "k": 0}, "label": "Gaussian (A=-1)", "name": "pr18"},
+    {"type": "gauss", "params": {"A": -3, "k": 0}, "label": "Gaussian (A=-3)", "name": "pr19"},
+    {"type": "gauss", "params": {"A": -6, "k": 0}, "label": "Gaussain (A=-6)", "name": "pr20"}
   ]
 ]'
 
