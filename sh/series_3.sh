@@ -34,4 +34,4 @@ PROFILES_JSON='[
   ]
 ]'
 
-python /home/val2204/translocation-task/new_different_depths.py --profiles_json "$PROFILES_JSON" --N 50 100 --log_scale > ${OUTFILE} 2> ${ERRFILE}
+python /home/val2204/translocation-task/different_depths.py --profiles_json "$PROFILES_JSON" --N 50 --log_scale > ${OUTFILE} 2> ${ERRFILE}

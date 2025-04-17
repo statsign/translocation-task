@@ -58,7 +58,7 @@ class FokkerPlanckSolver:
 
         Args:
             i: coordinate for each point
-            profile_type: type of profile ('linear', 'small_min', ...)
+            profile_type: type of profile ('linear', ...)
 
         Returns:
             Profile value at position i
@@ -71,12 +71,6 @@ class FokkerPlanckSolver:
             slope = params.get('slope', -0.01)
             c = params.get('c', 0)
             return slope * i + c
-
-        elif profile_type == "small_min":
-            a = params.get('a', 0.01)
-            t = params.get('t', 0.001)
-            c = params.get('c', -0.0002)
-            return a * np.exp(-i / t) + c
 
         elif profile_type == "quadratic":
             a = params.get('a', 0.0002)
@@ -105,7 +99,7 @@ class FokkerPlanckSolver:
                 actual number of segments
 
             profile_type: str
-                type of profile ('linear', 'small_min')
+                type of profile ('linear', )
 
             z: scalar
                 actual length of the field (related to dt and the mobility constant)
@@ -145,7 +139,7 @@ class FokkerPlanckSolver:
         Args:
             N: scalar
                 actual number of segments
-            profile_type: type of profile ('linear', 'small_min', ...)
+            profile_type: type of profile ('linear', ...)
 
         Returns:
             Dictionary with simulation results

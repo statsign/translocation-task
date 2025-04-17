@@ -65,7 +65,7 @@ class CompareProfiles:
             axes[i].legend(loc='best')
             axes[i].set_xlabel("s")
             axes[i].set_ylabel("F(s)/kT")
-            axes[i].set_xlim(0, N+1) 
+            axes[i].set_xlim(0, N+1)
 
         plt.tight_layout()
         imgname = f"profiles_exp{self.experiment_id}_{N}"
@@ -263,15 +263,6 @@ class MultipleOptimizer:
                     },
 
                 ]
-            elif profile['type'] == "small_min":
-                space = [
-                    {
-                        "name": "a",
-                        "type": "continuous",
-                        "domain": (0.001, 0.1),
-                        "dimensionality": 1,
-                    },
-                ]
             elif profile['type'] == "gauss":
                 space = [
                     {
@@ -281,7 +272,6 @@ class MultipleOptimizer:
                         "dimensionality": 1,
 
                     }
-
                 ]
 
             print(
@@ -332,7 +322,6 @@ class MultipleOptimizer:
                         max_iter=max_iter, max_time=max_time, eps=tolerance, verbosity=True)
 
                     best_params = bo.x_opt
-                    print(best_params)
                     opt_loss = bo.fx_opt
 
                     optimized_params = profile['params'].copy()
@@ -395,7 +384,7 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'b-', label=f'Reference (N={self.N_ref})')
+                        'g-', label=f'Reference (N={self.N_ref})')
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
@@ -437,7 +426,7 @@ class MultipleOptimizer:
                 if profile_name in results and results[profile_name]['final_result']:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
-                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'],
+                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'c--',
                                  label=f"{profile['label']}")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
                                  'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
@@ -496,7 +485,7 @@ class ExperimentSeries:
                 # Initialize comparison
                 compare = CompareProfiles(
                     profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
-                
+
                 # Initial results
                 fp_results = compare.run_multiple_simulations(N)
 
@@ -549,6 +538,7 @@ class ExperimentSeries:
                         'Experiment': exp_id,
                         'N': N,
                         'Profile': prof_name,
+                        'Loss': opt.get('best_loss'),     
                         'Initial_success_time': initial.get('success_time'),
                         'Optimized_success_time': final.get('success_time'),
                         'Initial_failure_time': initial.get('failure_time'),
@@ -558,7 +548,7 @@ class ExperimentSeries:
                         'Initial_failure_rate': initial.get('failure_rate'),
                         'Optimized_failure_rate': final.get('failure_rate'),
                     }
-   
+
                     for p, v in opt.get('best_params', {}).items():
                         row[f'Param_{p}'] = v
                     rows.append(row)
@@ -592,7 +582,7 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     parser.add_argument(
         "--log_scale",
         action="store_true",
-        default=True,
+        default=False,
         help="Use logarithmic scale"
     )
     args = parser.parse_args()
@@ -664,4 +654,3 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
         results = experiment_series.run_experiments()
 
         print("All experiments completed successfully!")
-
