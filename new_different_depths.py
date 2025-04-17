@@ -277,7 +277,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (0, 8),
+                        "domain": (-8, 0),
                         "dimensionality": 1,
 
                     }
@@ -652,28 +652,11 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
              "label": "Quadratic (a=0.01)", "name": "pr6"},
         ]
 
-        profiles_4 = [
-            {"type": "gauss", "params": {"A": 1},
-                "label": "Gauss (A=1)", "name": "pr8"},
-            {"type": "gauss", "params": {"A": 3},
-                "label": "Gauss (A=3)", "name": "pr9"},
-            {"type": "gauss", "params": {"A": 0},
-             "label": "Gauss (A=0)", "name": "pr10"},
-        ]
-
-        profiles_5 = [{"type": "gauss", "params": {"A": 1},
-                       "label": "Gaussian (A=1)", "name": "pr8"},
-                      {"type": "gauss", "params": {"A": 3},
-                       "label": "Gaussian (A=3)", "name": "pr9"},
-                      {"type": "gauss", "params": {"A": 8},
-                       "label": "Gaussain (A=8)", "name": "pr11"},
-                      ]
-
         # Create an experiment series
         experiment_series = ExperimentSeries(
             solver=solver,
             profile_sets=[profiles_1, profiles_2,
-                          profiles_3, profiles_4, profiles_5],
+                          profiles_3],
             N_values=[50, 100],
             log_scale=True
         )

@@ -85,10 +85,11 @@ class FokkerPlanckSolver:
             return a * (i-b)**2 + c
 
         elif profile_type == "gauss":
-            A = params.get('A', 1)
+            A = params.get('A', -1)
             mu = params.get('mu', 20)
             sigma = params.get('sigma', 2)
-            return -i*0.1 - A * np.exp(-((i - mu)**2) / (2 * sigma**2))
+            k = params.get('k', -0.1)
+            return i*k + A * np.exp(-((i - mu)**2) / (2 * sigma**2))
 
         # When A == 0, turns into linear
 
