@@ -21,7 +21,7 @@ PROFILES_JSON='[
     {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "pr1"},
     {"type": "linear", "params": {"slope": -0.2}, "label": "Linear (slope=-0.2)", "name": "pr4"},
     {"type": "linear", "params": {"slope": -0.15}, "label": "Linear (slope=-0.15)", "name": "pr3"}
-  ],
+  ]
 ]'
 
 python /home/val2204/translocation-task/new_different_depths.py --profiles_json "$PROFILES_JSON" --N 50 --log_scale > ${OUTFILE} 2> ${ERRFILE}

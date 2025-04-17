@@ -41,7 +41,7 @@ PROFILES_JSON='[
     {"type": "gauss", "params": {"A": -1, "sigma": 2}, "label": "Gaussian (A=-1, sigma=2)", "name": "pr8"},
     {"type": "gauss", "params": {"A": -1, "k": 3}, "label": "Gaussian (A=-1, sigma=3)", "name": "pr9"},
     {"type": "gauss", "params": {"A": -1, "k": 4}, "label": "Gaussain (A=-1, sigma=4)", "name": "pr11"}
-  ],
+  ]
 ]'
 
 python /home/val2204/translocation-task/different_depths.py --profiles_json "$PROFILES_JSON" --N 50 --log_scale > ${OUTFILE} 2> ${ERRFILE}
