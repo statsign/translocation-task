@@ -16,7 +16,7 @@ PROFILES_JSON='[
     {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "pr4"},
     {"type": "linear", "params": {"slope": -0.07}, "label": "Linear (slope=-0.07)", "name": "pr5"},
     {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr6"}
-  ],
+  ]
 
 ]'
 
