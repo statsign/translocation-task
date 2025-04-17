@@ -56,7 +56,7 @@ class CompareProfiles:
 
     def plot_profiles(self, N):
 
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(4, 12))
+        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 6))
         axes = axes.flatten()
         for i, profile in enumerate(self.profiles):
             # Generate the profile first
@@ -81,7 +81,7 @@ class CompareProfiles:
         if not results:
             print("No data to display")
             return
-        fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(4, 12))
+        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 6))
         axes = axes.flatten()
 
         for i, result in enumerate(results):
@@ -327,7 +327,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-6, 6),
+                        "domain": (-4, 4),
                         "dimensionality": 1,
 
                     },
@@ -457,7 +457,7 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'b-', label=f'Reference (N={self.N_ref})')
+                        'b', label=f'Reference (N={self.N_ref})')
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
@@ -499,10 +499,10 @@ class MultipleOptimizer:
                 if profile_name in results and results[profile_name]['final_result']:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
-                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'g--',
+                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'g',
                                  label=f"{profile['label']}")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
-                                 'r-', label=f'Reference (N={self.N_ref})', linestyle="--")
+                                 'r-', label=f'Reference')
                     axes[i].set_xlabel('t')
                     if self.log_scale == False:
                         axes[i].set_ylabel('p(t)')
@@ -632,6 +632,14 @@ class ExperimentSeries:
             out_path = os.path.join(data_folder, csv_name)
             df.to_csv(out_path, index=False)
             print(f"Comparison CSV saved: {out_path}")
+
+            excel_name = f"exp_{exp_id}_comparison.xlsx"
+            excel_path = os.path.join(data_folder, excel_name)
+            df.to_excel(excel_path,
+                        sheet_name='Summary',
+                        index=False,
+                        engine='openpyxl')
+            print(f"Comparison Excel saved: {excel_path}")
 
 
 # Example usage

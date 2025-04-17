@@ -2,8 +2,8 @@
 #SBATCH --job-name=first_test
 #SBATCH --ntasks=1
 
-OUTFILE="/data1/val2204/myjob_${SLURM_JOB_ID}.out"
-ERRFILE="/data1/val2204/myjob_${SLURM_JOB_ID}.err"
+OUTFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.out"
+ERRFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.err"
 source venv/bin/activate
 
 PROFILES_JSON='[
@@ -25,8 +25,23 @@ PROFILES_JSON='[
   [
     {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "pr8"},
     {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr9"},
-    {"type": "gauss", "params": {"A": -6}, "label": "Gaussain (A=-6)", "name": "pr11"}
-  ]
+    {"type": "gauss", "params": {"A": -4}, "label": "Gaussain (A=-4)", "name": "pr11"}
+  ],
+    [
+    {"type": "gauss", "params": {"A": -1, "k": -0.15}, "label": "Gaussian (A=-1)", "name": "pr8"},
+    {"type": "gauss", "params": {"A": -2, "k": -0.15}, "label": "Gaussian (A=-2)", "name": "pr9"},
+    {"type": "gauss", "params": {"A": -3, "k": -0.15}, "label": "Gaussain (A=-3)", "name": "pr11"}
+  ],
+  [
+    {"type": "gauss", "params": {"A": -1, "k": -0.1}, "label": "Gaussian (A=-1, k=-0.1)", "name": "pr8"},
+    {"type": "gauss", "params": {"A": -1, "k": -0.15}, "label": "Gaussian (A=-1, k=-0.15)", "name": "pr9"},
+    {"type": "gauss", "params": {"A": -1, "k": -0.2}, "label": "Gaussain (A=-1, k=-0.2)", "name": "pr11"}
+  ],
+  [
+    {"type": "gauss", "params": {"A": -1, "sigma": 2}, "label": "Gaussian (A=-1, sigma=2)", "name": "pr8"},
+    {"type": "gauss", "params": {"A": -1, "k": 3}, "label": "Gaussian (A=-1, sigma=3)", "name": "pr9"},
+    {"type": "gauss", "params": {"A": -1, "k": 4}, "label": "Gaussain (A=-1, sigma=4)", "name": "pr11"}
+  ],
 ]'
 
 python /home/val2204/translocation-task/different_depths.py --profiles_json "$PROFILES_JSON" --N 50 --log_scale > ${OUTFILE} 2> ${ERRFILE}

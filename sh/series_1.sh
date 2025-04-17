@@ -2,8 +2,8 @@
 #SBATCH --job-name=first_test
 #SBATCH --ntasks=1
 
-OUTFILE="/data1/val2204/myjob_${SLURM_JOB_ID}.out"
-ERRFILE="/data1/val2204/myjob_${SLURM_JOB_ID}.err"
+OUTFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.out"
+ERRFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.err"
 source venv/bin/activate
 
 PROFILES_JSON='[
@@ -25,9 +25,9 @@ PROFILES_JSON='[
   [
     {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "pr5"},
     {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr6"},
-    {"type": "gauss", "params": {"A": -6}, "label": "Gaussain (A=-6)", "name": "pr8"}
+    {"type": "gauss", "params": {"A": -4}, "label": "Gaussain (A=-4)", "name": "pr8"}
   ],
-    [
+  [
     {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "pr9"},
     {"type": "gauss", "params": {"A": 3}, "label": "Gaussian (A=3)", "name": "pr10"},
     {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0)", "name": "pr7"}
@@ -35,7 +35,7 @@ PROFILES_JSON='[
   [
     {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "pr9"},
     {"type": "gauss", "params": {"A": 3}, "label": "Gaussian (A=3)", "name": "pr10"},
-    {"type": "gauss", "params": {"A": 6}, "label": "Gaussain (A=6)", "name": "pr11"}
+    {"type": "gauss", "params": {"A": 4}, "label": "Gaussain (A=4)", "name": "pr11"}
   ],
    [
     {"type": "gauss", "params": {"A": -1, "k": 0}, "label": "Gaussian (A=-1)", "name": "pr12"},
