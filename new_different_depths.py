@@ -121,6 +121,9 @@ class CompareProfiles:
             print("No data to display")
             return
         fig, ax = plt.subplots(figsize=(6, 4))
+        colors = ['red','green','blue','orange','purple','pink']
+        linestyles = ['-','--','-.',':','-','--']
+        ax.set_prop_cycle(cycler('color', colors) + cycler('linestyle', linestyles))
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -148,6 +151,9 @@ class CompareProfiles:
             print("No data to display")
             return
         fig, ax = plt.subplots(figsize=(6, 4))
+        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink']
+        linestyles = ['-', '--', '-.', ':', '-', '--']
+        ax.set_prop_cycle(cycler('color', colors) + cycler('linestyle', linestyles))
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -325,7 +331,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-6, 6),
+                        "domain": (-4, 4),
                         "dimensionality": 1,
 
                     }

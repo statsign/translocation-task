@@ -334,7 +334,7 @@ class MultipleOptimizer:
                     {
                         "name": "sigma",
                         "type": "continuous",
-                        "domain": (0, 10),
+                        "domain": (0.1, 10),
                         "dimensionality": 1,
 
                     }
