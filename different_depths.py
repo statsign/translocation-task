@@ -201,7 +201,8 @@ class CompareProfiles:
                     ax.set_ylabel('p(t)')
                 else:
                     ax.set_ylabel('log(p(t))')
-                ax.set_ylim(-15, -4)
+                    ax.set_ylim(-15, -4)
+                
                 ax.legend()
 
             except FileNotFoundError:
