@@ -101,7 +101,8 @@ class CompareProfiles:
                 if self.log_scale == False:
                     axes[i].set_ylabel('p(t)')
                 else:
-                    axes[i].set_ylabel('log(p(t))')
+                    axes[i].set_ylabel('p(t) log scale')
+                    axes[i].set_yscale('log')
                 # axes[i].set_ylim(-50, 0)
                 axes[i].legend()
 
@@ -139,8 +140,12 @@ class CompareProfiles:
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
         ax.set_xlabel('t')
-        ax.set_ylabel('log(p_T)' if self.log_scale else 'p_T')
-        ax.legend()
+        if self.log_scale:
+            ax.set_yscale('log')
+            ax.set_ylabel('p_T (log scale)')
+        else:
+            ax.set_ylabel('p_T')
+            ax.legend()
         plt.tight_layout()
         imgname = f"success_pdfs_exp{self.experiment_id}_{N}"
         plt.savefig(os.path.join(images_folder, imgname))
@@ -168,8 +173,12 @@ class CompareProfiles:
                 print(f"File {filename} not found!")
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
-        ax.set_xlabel('t')
-        ax.set_ylabel('log(p_F)' if self.log_scale else 'p_F')
+        if self.log_scale:
+            ax.set_yscale('log')
+            ax.set_ylabel('p_F (log scale)')
+        else:
+            ax.set_ylabel('p_F')
+            ax.legend()
         ax.legend()
         plt.tight_layout()
         imgname = f"failure_pdfs_exp{self.experiment_id}_{N}"
@@ -206,8 +215,8 @@ class CompareProfiles:
                     ax.set_ylabel('p(t)')
                     ax.set_ylim(auto=True)
                 else:
-                    ax.set_ylabel('log(p(t))')
-                    ax.set_ylim(-15, -4)
+                    ax.set_ylabel('p(t) log scale')
+                    ax.set_yscale('log')
                 ax.legend()
 
             except FileNotFoundError:

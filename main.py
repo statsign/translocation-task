@@ -227,8 +227,8 @@ class FokkerPlanckSolver:
 
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
-                if log_scale == True:
-                    ptotal = np.log(ptotal)
+                #if log_scale == True:
+                    #ptotal = np.log(ptotal)
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)
