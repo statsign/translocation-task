@@ -462,9 +462,10 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
                 if self.log_scale == False:
-                    ax.set_ylabel('p(t)')
+                    axes.set_ylabel('p(t)')
                 else:
-                    ax.set_ylabel('log(p(t))')
+                    axes.set_ylabel('p(t) log scale')
+                    axes.set_yscale('log')
                 ax.set_title(
                     f'{profile["label"]} (Experiment {self.experiment_id})')
                 ax.legend()
@@ -507,7 +508,8 @@ class MultipleOptimizer:
                     if self.log_scale == False:
                         axes[i].set_ylabel('p(t)')
                     else:
-                        axes[i].set_ylabel('log(p(t))')
+                        axes[i].set_ylabel('p(t) log scale')
+                        axes[i].set_yscale('log')
                     axes[i].legend()
 
             # plt.tight_layout()

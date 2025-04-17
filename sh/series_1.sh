@@ -15,11 +15,11 @@ PROFILES_JSON='[
    [
     {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "pr1"},
     {"type": "linear", "params": {"slope": -0.2}, "label": "Linear (slope=-0.2)", "name": "pr4"},
-    {"type": "linear", "params": {"slope": -0.08}, "label": "Linear (slope=-0.08)", "name": "pr3"}
+    {"type": "linear", "params": {"slope": -0.15}, "label": "Linear (slope=-0.15)", "name": "pr3"}
   ],
   [
     {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "pr5"},
-    {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr6"},
+    {"type": "gauss", "params": {"A": -2}, "label": "Gaussian (A=-2)", "name": "pr6"},
     {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0)", "name": "pr7"}
   ],
   [
