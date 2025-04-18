@@ -213,6 +213,7 @@ class CompareProfiles:
                 else:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
+                    ax.set_ylim(-15, -4)
                 
                 ax.legend()
 
