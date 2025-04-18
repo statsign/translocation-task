@@ -8,14 +8,24 @@ source venv/bin/activate
 
 PROFILES_JSON='[
   [
-    {"type": "gauss", "params": {"A": -6}, "label": "Gaussian (A=-6, k=-0.1)", "name": "pr1"},
-    {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0, k=-0.1) (linear)", "name": "pr2"},
-    {"type": "gauss", "params": {"A": 0, "k": -0.2}, "label": "Gaussian (A=0, k=-0.2) (linear)", "name": "pr3"}
+    {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "linear0_1"},
+    {"type": "linear", "params": {"slope": -0.07}, "label": "Linear (slope=-0.07)", "name": "linear0_07"},
+    {"type": "linear", "params": {"slope": -0.08}, "label": "Linear (slope=-0.08)", "name": "linear0_08"}
+  ],
+   [
+    {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "linear0_1"},
+    {"type": "linear", "params": {"slope": -0.2}, "label": "Linear (slope=-0.2)", "name": "linear0_2"},
+    {"type": "linear", "params": {"slope": -0.15}, "label": "Linear (slope=-0.15)", "name": "linear0_15"}
   ],
   [
-    {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "pr4"},
-    {"type": "linear", "params": {"slope": -0.07}, "label": "Linear (slope=-0.07)", "name": "pr5"},
-    {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "pr6"}
+    {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "gaussA1"},
+    {"type": "gauss", "params": {"A": -2}, "label": "Gaussian (A=-2)", "name": "gaussA2"},
+    {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0 (linear))", "name": "gaussA0"}
+  ],
+  [
+    {"type": "gauss", "params": {"A": -1}, "label": "Gaussian (A=-1)", "name": "gaussA1"},
+    {"type": "gauss", "params": {"A": -3}, "label": "Gaussian (A=-3)", "name": "gaussA3"},
+    {"type": "gauss", "params": {"A": -4}, "label": "Gaussain (A=-4)", "name": "gaussA4"}
   ]
 ]'
 

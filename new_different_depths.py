@@ -217,7 +217,7 @@ class CompareProfiles:
                 else:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
-                    ax.set_ylim(1e-15, 0)
+                    ax.set_ylim(1e-7, 0)
                 ax.legend()
 
             except FileNotFoundError:
@@ -350,7 +350,7 @@ class MultipleOptimizer:
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-4, 4),
+                        "domain": (-5, 5),
                         "dimensionality": 1,
 
                     }
