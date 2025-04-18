@@ -214,7 +214,7 @@ class CompareProfiles:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
                     ax.set_ylim(-15, -4)
-                
+
                 ax.legend()
 
             except FileNotFoundError:
@@ -279,6 +279,7 @@ class MultipleOptimizer:
         if profile['type'] == "linear":
             if len(theta) > 0:
                 params['slope'] = theta[0]
+
         elif profile['type'] == "quadratic":
             if len(theta) > 0:
                 params['a'] = theta[0]
@@ -286,12 +287,14 @@ class MultipleOptimizer:
         elif profile['type'] == "gauss":
             if len(theta) > 0:
                 params['A'] = theta[0]
-                if len(theta) > 1:
-                    params['sigma'] = theta[1]
+            if len(theta) > 1:
+                params['sigma'] = theta[1]
+            if len(theta) > 2:
+                params['k'] = theta[2]
 
                     # Run Fortran program for this params
         result = self.solver.run_fp(
-            N_value, profile['type'], params, 
+            N_value, profile['type'], params,
             name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
 
         current_value = result['ptotal']
@@ -318,16 +321,16 @@ class MultipleOptimizer:
 
             # Define optimization space
             if profile["type"] == "linear":
-                space=[
+                space = [
                     {
-                        "name": "a",
+                        "name": "slope",
                         "type": "continuous",
                         "domain": (-0.5, 0.5),
                         "dimensionality": 1,
                     }
                 ]
             elif profile["type"] == "quadratic":
-                space=[
+                space = [
                     {
                         "name": "a",
                         "type": "continuous",
@@ -349,8 +352,12 @@ class MultipleOptimizer:
                         "type": "continuous",
                         "domain": (0.1, 10),
                         "dimensionality": 1,
-
-                    }
+                    },
+                    {"name": "k",     
+                     "type": "continuous",
+                     "domain": (-0.5, 0.5),  
+                     "dimensionality": 1
+                     }
 
                 ]
 
@@ -407,23 +414,19 @@ class MultipleOptimizer:
                     optimized_params = profile['params'].copy()
 
                     if profile["type"] == "linear":
-                        if len(best_params) > 0:
-                            optimized_params['slope'] = best_params[0]
+                        optimized_params['slope'] = best_params[0]
 
                     elif profile["type"] == "quadratic":
-                        if len(best_params) > 0:
-                            optimized_params['a'] = best_params[0]
+                        optimized_params['a'] = best_params[0]
 
                     elif profile['type'] == "gauss":
-                        if len(best_params) > 0:
-                            optimized_params['A'] = best_params[0]
-                            if len(best_params) > 1:
-                                optimized_params['sigma'] = best_params[1]
-
-
+                        optimized_params['A'] = best_params[0]
+                        optimized_params['sigma'] = best_params[1]
+                        optimized_params['k'] = best_params[2]
 
                     # Print the current best result
-                    print(f"Experiment: {self.experiment_id}, Iteration: {(i + 1) * 5}")
+                    print(
+                        f"Experiment: {self.experiment_id}, Iteration: {(i + 1) * 5}")
                     print(f"Objective function value: {opt_loss}")
                     print(f"Parameters: {optimized_params}")
 
@@ -436,7 +439,7 @@ class MultipleOptimizer:
                         self.N_ref, profile['type'], optimized_params,
                         name=profile_name,
                         log_scale=self.log_scale, exp_id=self.experiment_id)
-                    
+
                     # input("Press Enter to continue...")
 
             except Exception as e:
@@ -446,19 +449,15 @@ class MultipleOptimizer:
 
             optimized_params = profile['params'].copy()
             if profile['type'] == "linear":
-                if len(best_params) > 0:
-                    optimized_params['slope'] = best_params[0]
+                optimized_params['slope'] = best_params[0]
 
             elif profile['type'] == "quadratic":
-                if len(best_params) > 0:
-                    optimized_params['a'] = best_params[0]
+                optimized_params['a'] = best_params[0]
 
             elif profile['type'] == "gauss":
-                if len(best_params) > 0:
-                    optimized_params['A'] = best_params[0]
-                    if len(best_params) > 1:
-                        optimized_params['sigma'] = best_params[1]
-
+                optimized_params['A'] = best_params[0]
+                optimized_params['sigma'] = best_params[1]
+                optimized_params['k'] = best_params[2]
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
@@ -475,9 +474,10 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
                 if self.log_scale == False:
-                    ax.set_ylabel('p(t)')
+                    axes[i].set_ylabel('p(t)')
                 else:
-                    ax.set_ylabel('log(p(t))')
+                    axes[i].set_ylabel('p(t) log scale')
+                    axes[i].set_yscale('log')
                 ax.set_title(
                     f'{profile["label"]} (Experiment {self.experiment_id})')
                 ax.legend()
@@ -520,9 +520,9 @@ class MultipleOptimizer:
                     if self.log_scale == False:
                         axes[i].set_ylabel('p(t)')
                     else:
-                        axes[i].set_ylabel('log(p(t))')
+                        axes[i].set_ylabel('p(t) log scale')
+                        axes[i].set_yscale('log')
                     axes[i].legend()
-
 
             # plt.tight_layout()
             path = os.path.join(
@@ -625,7 +625,7 @@ class ExperimentSeries:
                         'Experiment': exp_id,
                         'N': N,
                         'Profile': prof_name,
-                        'Loss': opt.get('best_loss'),     
+                        'Loss': opt.get('best_loss'),
                         'Initial_success_time': initial.get('success_time'),
                         'Optimized_success_time': final.get('success_time'),
                         'Initial_failure_time': initial.get('failure_time'),

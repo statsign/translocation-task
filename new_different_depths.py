@@ -321,7 +321,7 @@ class MultipleOptimizer:
             if profile["type"] == "linear":
                 space = [
                     {
-                        "name": "a",
+                        "name": "slope",
                         "type": "continuous",
                         "domain": (-0.5, 0.5),
                         "dimensionality": 1,
