@@ -213,11 +213,11 @@ class CompareProfiles:
                 ax.set_xlabel('t')
                 if self.log_scale == False:
                     ax.set_ylabel('p(t)')
-                    ax.set_ylim(auto=True)
+                    ax.autoscale()
                 else:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
-                    ax.set_ylim(-15, -4)
+                    ax.set_ylim(1e-15, 1e-4)
                 ax.legend()
 
             except FileNotFoundError:
@@ -280,16 +280,24 @@ class MultipleOptimizer:
         params = profile['params'].copy()
 
         if profile['type'] == "linear":
-            if len(theta) > 0:
+            if len(theta) >= 1:
                 params['slope'] = theta[0]
-
+        
         elif profile['type'] == "quadratic":
-            if len(theta) > 0:
+            if len(theta) >= 1:
                 params['a'] = theta[0]
-
+        
         elif profile['type'] == "gauss":
-            if len(theta) > 0:
-                params['A'] = theta[0]
+            param_idx = 0
+            if param_idx < len(theta):
+                params['A'] = theta[param_idx]
+                param_idx += 1
+            if param_idx < len(theta):
+                params['sigma'] = theta[param_idx]
+                param_idx += 1
+            if param_idx < len(theta):
+                params['k'] = theta[param_idx]
+                param_idx += 1
 
         # Run Fortran program for this params
         result = self.solver.run_fp(
@@ -400,18 +408,23 @@ class MultipleOptimizer:
 
                     optimized_params = profile['params'].copy()
 
-                    if profile["type"] == "linear":
-                        if len(best_params) > 0:
+                    if profile['type'] == "linear":
+                        if len(best_params) >= 1:
                             optimized_params['slope'] = best_params[0]
-
-                    elif profile["type"] == "quadratic":
-                        if len(best_params) > 0:
+                    elif profile['type'] == "quadratic":
+                        if len(best_params) >= 1:
                             optimized_params['a'] = best_params[0]
-
                     elif profile['type'] == "gauss":
-                        if len(best_params) > 0:
-                            optimized_params['A'] = best_params[0]
-
+                        param_idx = 0
+                        if param_idx < len(best_params):
+                            optimized_params['A'] = best_params[param_idx]
+                            param_idx += 1
+                        if param_idx < len(best_params):
+                            optimized_params['sigma'] = best_params[param_idx]
+                            param_idx += 1
+                        if param_idx < len(best_params):
+                            optimized_params['k'] = best_params[param_idx]
+                            param_idx += 1
                     # Print the current best result
                     print(
                         f"Experiment: {self.experiment_id}, Iteration: {(i + 1) * 5}")
@@ -437,17 +450,22 @@ class MultipleOptimizer:
 
             optimized_params = profile['params'].copy()
             if profile['type'] == "linear":
-                if len(best_params) > 0:
+                if len(best_params) >= 1:
                     optimized_params['slope'] = best_params[0]
-
             elif profile['type'] == "quadratic":
-                if len(best_params) > 0:
+                if len(best_params) >= 1:
                     optimized_params['a'] = best_params[0]
-
             elif profile['type'] == "gauss":
-                if len(best_params) > 0:
-                    optimized_params['A'] = best_params[0]
-
+                param_idx = 0
+                if param_idx < len(best_params):
+                    optimized_params['A'] = best_params[param_idx]
+                    param_idx += 1
+                if param_idx < len(best_params):
+                    optimized_params['sigma'] = best_params[param_idx]
+                    param_idx += 1
+                if param_idx < len(best_params):
+                    optimized_params['k'] = best_params[param_idx]
+                    param_idx += 1
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
                 name=profile_name,
@@ -538,7 +556,7 @@ class ExperimentSeries:
         self.N_values = N_values if N_values else [50]
         self.log_scale = log_scale
 
-    def run_experiments(self, max_iter=5, initial_points=50):
+    def run_experiments(self, max_iter=10, initial_points=50):
         """
         Run a series of experiments
 

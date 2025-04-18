@@ -209,11 +209,11 @@ class CompareProfiles:
                 ax.set_xlabel('t')
                 if self.log_scale == False:
                     ax.set_ylabel('p(t)')
-                    ax.set_ylim(auto=True)
+                    ax.autoscale()
                 else:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
-                    ax.set_ylim(-15, -4)
+                    ax.set_ylim(1e-15, 1e-4)
 
                 ax.legend()
 
@@ -277,20 +277,24 @@ class MultipleOptimizer:
         params = profile['params'].copy()
 
         if profile['type'] == "linear":
-            if len(theta) > 0:
+            if len(theta) >= 1:
                 params['slope'] = theta[0]
-
+        
         elif profile['type'] == "quadratic":
-            if len(theta) > 0:
+            if len(theta) >= 1:
                 params['a'] = theta[0]
-
+        
         elif profile['type'] == "gauss":
-            if len(theta) > 0:
-                params['A'] = theta[0]
-            if len(theta) > 1:
-                params['sigma'] = theta[1]
-            if len(theta) > 2:
-                params['k'] = theta[2]
+            param_idx = 0
+            if param_idx < len(theta):
+                params['A'] = theta[param_idx]
+                param_idx += 1
+            if param_idx < len(theta):
+                params['sigma'] = theta[param_idx]
+                param_idx += 1
+            if param_idx < len(theta):
+                params['k'] = theta[param_idx]
+                param_idx += 1
 
                     # Run Fortran program for this params
         result = self.solver.run_fp(
@@ -400,7 +404,6 @@ class MultipleOptimizer:
             )
 
             max_time = None
-            max_iter = 10
             tolerance = 1e-8  # Distance between two consecutive observations
 
             try:
@@ -413,16 +416,23 @@ class MultipleOptimizer:
 
                     optimized_params = profile['params'].copy()
 
-                    if profile["type"] == "linear":
-                        optimized_params['slope'] = best_params[0]
-
-                    elif profile["type"] == "quadratic":
-                        optimized_params['a'] = best_params[0]
-
+                    if profile['type'] == "linear":
+                        if len(best_params) >= 1:
+                            optimized_params['slope'] = best_params[0]
+                    elif profile['type'] == "quadratic":
+                        if len(best_params) >= 1:
+                            optimized_params['a'] = best_params[0]
                     elif profile['type'] == "gauss":
-                        optimized_params['A'] = best_params[0]
-                        optimized_params['sigma'] = best_params[1]
-                        optimized_params['k'] = best_params[2]
+                        param_idx = 0
+                        if param_idx < len(best_params):
+                            optimized_params['A'] = best_params[param_idx]
+                            param_idx += 1
+                        if param_idx < len(best_params):
+                            optimized_params['sigma'] = best_params[param_idx]
+                            param_idx += 1
+                        if param_idx < len(best_params):
+                            optimized_params['k'] = best_params[param_idx]
+                            param_idx += 1
 
                     # Print the current best result
                     print(
@@ -449,15 +459,22 @@ class MultipleOptimizer:
 
             optimized_params = profile['params'].copy()
             if profile['type'] == "linear":
-                optimized_params['slope'] = best_params[0]
-
+                if len(best_params) >= 1:
+                    optimized_params['slope'] = best_params[0]
             elif profile['type'] == "quadratic":
-                optimized_params['a'] = best_params[0]
-
+                if len(best_params) >= 1:
+                    optimized_params['a'] = best_params[0]
             elif profile['type'] == "gauss":
-                optimized_params['A'] = best_params[0]
-                optimized_params['sigma'] = best_params[1]
-                optimized_params['k'] = best_params[2]
+                param_idx = 0
+                if param_idx < len(best_params):
+                    optimized_params['A'] = best_params[param_idx]
+                    param_idx += 1
+                if param_idx < len(best_params):
+                    optimized_params['sigma'] = best_params[param_idx]
+                    param_idx += 1
+                if param_idx < len(best_params):
+                    optimized_params['k'] = best_params[param_idx]
+                    param_idx += 1
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
@@ -474,10 +491,10 @@ class MultipleOptimizer:
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
                 if self.log_scale == False:
-                    axes[i].set_ylabel('p(t)')
+                    axes.set_ylabel('p(t)')
                 else:
-                    axes[i].set_ylabel('p(t) log scale')
-                    axes[i].set_yscale('log')
+                    axes.set_ylabel('p(t) log scale')
+                    axes.set_yscale('log')
                 ax.set_title(
                     f'{profile["label"]} (Experiment {self.experiment_id})')
                 ax.legend()
