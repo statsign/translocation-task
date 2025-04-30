@@ -1,15 +1,14 @@
 from main import FokkerPlanckSolver
 import matplotlib.pyplot as plt
 import numpy as np
-import subprocess
 import GPyOpt
 import traceback
 import os
-import glob
 from cycler import cycler
 import json
 import argparse
 import pandas as pd
+import collections
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
@@ -279,11 +278,11 @@ class MultipleOptimizer:
         if profile['type'] == "linear":
             if len(theta) >= 1:
                 params['slope'] = theta[0]
-        
+
         elif profile['type'] == "quadratic":
             if len(theta) >= 1:
                 params['a'] = theta[0]
-        
+
         elif profile['type'] == "gauss":
             param_idx = 0
             if param_idx < len(theta):
@@ -296,7 +295,7 @@ class MultipleOptimizer:
                 params['k'] = theta[param_idx]
                 param_idx += 1
 
-                    # Run Fortran program for this params
+        # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
             name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
@@ -357,9 +356,9 @@ class MultipleOptimizer:
                         "domain": (0.1, 10),
                         "dimensionality": 1,
                     },
-                    {"name": "k",     
+                    {"name": "k",
                      "type": "continuous",
-                     "domain": (-0.5, 0.5),  
+                     "domain": (-0.5, 0.5),
                      "dimensionality": 1
                      }
 
@@ -625,7 +624,8 @@ class ExperimentSeries:
 
     def create_summary_report(self, exp_id, results):
         """Create a summary report of all experiments"""
-        rows = []
+
+        metrics_dict = collections.defaultdict(dict)
 
         key = f'experiment_{exp_id}'
         exp_data = results.get(key, {})
@@ -634,42 +634,51 @@ class ExperimentSeries:
             optimized_map = res.get('optimization_results', {}) or {}
             init_map = {r['name']: r for r in initial_list if r}
 
-            if optimized_map:
-                for prof_name, opt in optimized_map.items():
-                    final = opt.get('final_result', {}) or {}
-                    initial = init_map.get(prof_name, {}) or {}
-                    row = {
-                        'Experiment': exp_id,
-                        'N': N,
-                        'Profile': prof_name,
-                        'Loss': opt.get('best_loss'),
-                        'Initial_success_time': initial.get('success_time'),
-                        'Optimized_success_time': final.get('success_time'),
-                        'Initial_failure_time': initial.get('failure_time'),
-                        'Optimized_failure_time': final.get('failure_time'),
-                        'Initial_success_rate': initial.get('success_rate'),
-                        'Optimized_success_rate': final.get('success_rate'),
-                        'Initial_failure_rate': initial.get('failure_rate'),
-                        'Optimized_failure_rate': final.get('failure_rate'),
-                    }
+            for prof_name, opt in optimized_map.items():
+                final = opt.get('final_result', {}) or {}
+                initial = init_map.get(prof_name, {}) or {}
 
-                    for p, v in opt.get('best_params', {}).items():
-                        row[f'Param_{p}'] = v
-                    rows.append(row)
-        if rows:
-            df = pd.DataFrame(rows)
-            csv_name = f"exp_{exp_id}_comparison.csv"
-            out_path = os.path.join(data_folder, csv_name)
-            df.to_csv(out_path, index=False)
-            print(f"Comparison CSV saved: {out_path}")
+                metrics_dict['Loss'][prof_name] = opt.get('best_loss')
+                metrics_dict['Initial_success_time'][prof_name] = initial.get(
+                    'success_time')
+                metrics_dict['Optimized_success_time'][prof_name] = final.get(
+                    'success_time')
+                metrics_dict['Initial_failure_time'][prof_name] = initial.get(
+                    'failure_time')
+                metrics_dict['Optimized_failure_time'][prof_name] = final.get(
+                    'failure_time')
+                metrics_dict['Initial_success_rate'][prof_name] = initial.get(
+                    'success_rate')
+                metrics_dict['Optimized_success_rate'][prof_name] = final.get(
+                    'success_rate')
+                metrics_dict['Initial_failure_rate'][prof_name] = initial.get(
+                    'failure_rate')
+                metrics_dict['Optimized_failure_rate'][prof_name] = final.get(
+                    'failure_rate')
 
-            excel_name = f"exp_{exp_id}_comparison.xlsx"
+                # Optimized parameters (appear as additional rows)
+                for p, v in opt.get('best_params', {}).items():
+                    metrics_dict[f'Param_{p}'][prof_name] = v
+
+        if metrics_dict:
+            df = pd.DataFrame(metrics_dict)
+
+            csv_name = f"exp_{exp_id}_comp.csv"
+            csv_path = os.path.join(data_folder, csv_name)
+            df.to_csv(csv_path, index=True)
+
+            excel_name = f"exp_{exp_id}_comp.xlsx"
             excel_path = os.path.join(data_folder, excel_name)
-            df.to_excel(excel_path,
-                        sheet_name='Summary',
-                        index=False,
-                        engine='openpyxl')
-            print(f"Comparison Excel saved: {excel_path}")
+            df.to_excel(excel_path, sheet_name='Summary',
+                        index=True, engine='openpyxl')
+
+            txt_name = f"exp_{exp_id}_comp.txt"
+            txt_path = os.path.join(data_folder, txt_name)
+            with open(txt_path, 'w', encoding='utf-8') as f:
+                f.write(df.to_string(index=True, justify='left'))
+
+            print(
+                f"Comparison tables saved: {csv_path}, {excel_path}, {txt_path}")
 
 
 # Example usage

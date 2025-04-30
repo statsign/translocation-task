@@ -4,7 +4,6 @@ import GPyOpt
 import subprocess
 import traceback
 import os
-import glob
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
