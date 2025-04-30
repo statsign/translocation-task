@@ -9,7 +9,7 @@ OUTFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.out"
 ERRFILE="/data1/val2204/data/myjob_${SLURM_JOB_ID}.err"
 source venv/bin/activate
 
-PROFILES_JSON="$(< /path/to/profiles.json)"
+PROFILES_JSON="$(< /home/val2204/translocation-task/sh/profiles.json)"
 
 python /home/val2204/translocation-task/different_depths.py \
   --profiles_json "$PROFILES_JSON" \

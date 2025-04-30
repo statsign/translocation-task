@@ -529,9 +529,9 @@ class MultipleOptimizer:
                     result = results[profile_name]
                     ref_model = self.reference_models[profile_name]
                     axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'g',
-                                 label=f"{profile['label']}", linestyle='--')
+                                 label=f"{profile['label']}")
                     axes[i].plot(ref_model['dt'], ref_model['ptotal'],
-                                 'r', label=f'Reference')
+                                 'r', label=f'Reference', linestyle='--')
                     axes[i].set_xlabel('t')
                     if self.log_scale == False:
                         axes[i].set_ylabel('p(t)')
@@ -661,7 +661,7 @@ class ExperimentSeries:
                     metrics_dict[f'Param_{p}'][prof_name] = v
 
         if metrics_dict:
-            df = pd.DataFrame(metrics_dict)
+            df = pd.DataFrame(metrics_dict).T
 
             csv_name = f"exp_{exp_id}_comp.csv"
             csv_path = os.path.join(data_folder, csv_name)
