@@ -11,7 +11,7 @@ source venv/bin/activate
 
 PROFILES_JSON="$(< /home/val2204/translocation-task/sh/profiles.json)"
 
-python /home/val2204/translocation-task/new_different_depths.py \
+python /home/val2204/translocation-task/different_depths.py \
   --profiles_json "$PROFILES_JSON" \
   --N 50 \
    > ${OUTFILE} 2> ${ERRFILE}

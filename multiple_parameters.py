@@ -103,7 +103,6 @@ class CompareProfiles:
                 else:
                     axes[i].set_ylabel('p(t) log scale')
                     axes[i].set_yscale('log')
-                # axes[i].set_ylim(-50, 0)
                 axes[i].legend()
 
             except FileNotFoundError:
@@ -122,10 +121,6 @@ class CompareProfiles:
             print("No data to display")
             return
         fig, ax = plt.subplots(figsize=(6, 4))
-        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink']
-        linestyles = ['-', '--', '-.', ':', '-', '--']
-        ax.set_prop_cycle(cycler('color', colors) +
-                          cycler('linestyle', linestyles))
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -147,6 +142,7 @@ class CompareProfiles:
         else:
             ax.set_ylabel('p_T')
             ax.legend()
+        ax.legend()
         plt.tight_layout()
         imgname = f"success_pdfs_exp{self.experiment_id}_{N}"
         plt.savefig(os.path.join(images_folder, imgname))
@@ -157,10 +153,6 @@ class CompareProfiles:
             print("No data to display")
             return
         fig, ax = plt.subplots(figsize=(6, 4))
-        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink']
-        linestyles = ['-', '--', '-.', ':', '-', '--']
-        ax.set_prop_cycle(cycler('color', colors) +
-                          cycler('linestyle', linestyles))
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -175,6 +167,7 @@ class CompareProfiles:
                 print(f"File {filename} not found!")
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
+        ax.set_xlabel('t')
         if self.log_scale:
             ax.set_yscale('log')
             ax.set_ylabel('p_F (log scale)')
@@ -219,7 +212,8 @@ class CompareProfiles:
                 else:
                     ax.set_ylabel('p(t) log scale')
                     ax.set_yscale('log')
-                    ax.set_ylim(1e-7, 0)
+                    ax.set_ylim(1e-15, 0)
+
                 ax.legend()
 
             except FileNotFoundError:
@@ -285,12 +279,6 @@ class MultipleOptimizer:
             if len(theta) >= 1:
                 params['slope'] = theta[0]
 
-        elif profile['type'] == "quadratic":
-            if len(theta) >= 1:
-                params['a'] = theta[0]
-
-        # Now in linear and quadratic only one parameter is optimized
-
         elif profile['type'] == "gauss":
             param_idx = 0
             if param_idx < len(theta):
@@ -306,8 +294,7 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=profile['name'],
-            log_scale=self.log_scale, exp_id=self.experiment_id)
+            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -329,6 +316,8 @@ class MultipleOptimizer:
         for profile in self.profiles:
             profile_name = profile['name']
 
+            # Define optimization space based on profile type
+
             # Define optimization space
             if profile["type"] == "linear":
                 space = [
@@ -339,25 +328,28 @@ class MultipleOptimizer:
                         "dimensionality": 1,
                     }
                 ]
-            elif profile["type"] == "quadratic":
-                space = [
-                    {
-                        "name": "a",
-                        "type": "continuous",
-                        "domain": (-0.02, 0.02),
-                        "dimensionality": 1,
-                    },
 
-                ]
             elif profile['type'] == "gauss":
                 space = [
                     {
                         "name": "A",
                         "type": "continuous",
-                        "domain": (-5, 5),
+                        "domain": (-4, 4),
                         "dimensionality": 1,
 
-                    }
+                    },
+                    {
+                        "name": "sigma",
+                        "type": "continuous",
+                        "domain": (0.1, 10),
+                        "dimensionality": 1,
+                    },
+                    {"name": "k",
+                     "type": "continuous",
+                     "domain": (-0.5, 0.5),
+                     "dimensionality": 1
+                     }
+
                 ]
 
             print(
@@ -400,7 +392,6 @@ class MultipleOptimizer:
 
             max_time = None
             tolerance = 1e-8  # Distance between two consecutive observations
-            best_params = None
 
             try:
                 for i in range(10):
@@ -415,17 +406,17 @@ class MultipleOptimizer:
                     if profile['type'] == "linear":
                         if len(best_params) >= 1:
                             optimized_params['slope'] = best_params[0]
-                    elif profile['type'] == "quadratic":
-                        if len(best_params) >= 1:
-                            optimized_params['a'] = best_params[0]
+
                     elif profile['type'] == "gauss":
                         param_idx = 0
                         if param_idx < len(best_params):
                             optimized_params['A'] = best_params[param_idx]
                             param_idx += 1
+
                         if param_idx < len(best_params):
                             optimized_params['sigma'] = best_params[param_idx]
                             param_idx += 1
+                            
                         if param_idx < len(best_params):
                             optimized_params['k'] = best_params[param_idx]
                             param_idx += 1
@@ -457,17 +448,18 @@ class MultipleOptimizer:
             if profile['type'] == "linear":
                 if len(best_params) >= 1:
                     optimized_params['slope'] = best_params[0]
-            elif profile['type'] == "quadratic":
-                if len(best_params) >= 1:
-                    optimized_params['a'] = best_params[0]
+
+
             elif profile['type'] == "gauss":
                 param_idx = 0
                 if param_idx < len(best_params):
                     optimized_params['A'] = best_params[param_idx]
                     param_idx += 1
+
                 if param_idx < len(best_params):
                     optimized_params['sigma'] = best_params[param_idx]
                     param_idx += 1
+
                 if param_idx < len(best_params):
                     optimized_params['k'] = best_params[param_idx]
                     param_idx += 1
@@ -482,7 +474,7 @@ class MultipleOptimizer:
 
                 fig, ax = plt.subplots()
                 ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'g-', label=f'Reference')
+                        'b-', label=f'Reference')
                 ax.plot(best_result['dt'], best_result['ptotal'],
                         'r--', label=f'Optimized')
                 ax.set_xlabel('t')
@@ -515,7 +507,7 @@ class MultipleOptimizer:
         # Compare all optimized results
         if results and plot_results:
 
-            fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(16, 6))
+            fig, axes = plt.subplots(nrows=3, ncols=1)
             axes = axes.flatten()
             fig.suptitle(
                 f"Different optimized profiles (Experiment {self.experiment_id}):")
@@ -562,7 +554,7 @@ class ExperimentSeries:
         self.N_values = N_values if N_values else [50]
         self.log_scale = log_scale
 
-    def run_experiments(self, max_iter=10, initial_points=50):
+    def run_experiments(self, max_iter=5, initial_points=50):
         """
         Run a series of experiments
 
@@ -621,7 +613,7 @@ class ExperimentSeries:
 
     def create_summary_report(self, exp_id, results):
         """Create a summary report of all experiments"""
-        
+
         metrics_dict = collections.defaultdict(dict)
 
         key = f'experiment_{exp_id}'
@@ -676,7 +668,6 @@ class ExperimentSeries:
 
             print(
                 f"Comparison tables saved: {csv_path}, {excel_path}, {txt_path}")
-         
 
 
 # Example usage
@@ -709,67 +700,25 @@ if __name__ == "__main__":  # Preventing unwanted code execution during import
     # Initialize solver
     solver = FokkerPlanckSolver()
 
-    if args.profiles_json:
-        # Parse the JSON string containing all profile sets
-        try:
-            profile_sets = json.loads(args.profiles_json)
+    try:
+        profile_sets = json.loads(args.profiles_json)
 
-            # Create an experiment series with the profile sets from JSON
-            experiment_series = ExperimentSeries(
-                solver=solver,
-                profile_sets=profile_sets,
-                N_values=args.N,
-                log_scale=args.log_scale
-            )
-
-            # Run experiments
-            results = experiment_series.run_experiments()
-
-            print("All experiments completed successfully!")
-
-        except json.JSONDecodeError as e:
-            print(f"Error parsing JSON profiles: {e}")
-        except Exception as e:
-            print(f"Error running experiments: {e}")
-            traceback.print_exc()
-    else:
-        # Define different profile types and parameters
-        profiles_1 = [
-            {"type": "linear", "params": {"slope": -0.1},
-                "label": "linear (slope=-0.1)", "name": "pr1"},
-            {"type": "linear", "params": {"slope": -0.07},
-             "label": "linear (slope=-0.07)", "name": "pr2"},
-            {"type": "linear", "params": {"slope": -0.08},
-             "label": "linear (slope=-0.08)", "name": "pr3"},]
-
-        profiles_2 = [
-            {"type": "quadratic", "params": {"a": 0.007, "b": 25, "c": -4},
-                "label": "Quadratic (a=0.007)", "name": "pr4"},
-            {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
-                "label": "Quadratic (a=0.008)", "name": "pr5"},
-            {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
-             "label": "Quadratic (a=0.01)", "name": "pr6"},
-        ]
-
-        profiles_3 = [
-            {"type": "quadratic", "params": {"a": 0.012, "b": 25, "c": -7},
-                "label": "Quadratic (a=0.012)", "name": "pr7"},
-            {"type": "quadratic", "params": {"a": 0.008, "b": 25, "c": -5},
-                "label": "Quadratic (a=0.008)", "name": "pr5"},
-            {"type": "quadratic", "params": {"a": 0.01, "b": 25, "c": -6},
-             "label": "Quadratic (a=0.01)", "name": "pr6"},
-        ]
-
-        # Create an experiment series
+        # Create an experiment series with the profile sets from JSON
         experiment_series = ExperimentSeries(
             solver=solver,
-            profile_sets=[profiles_1, profiles_2,
-                          profiles_3],
-            N_values=[50, 100],
-            log_scale=True
+            profile_sets=profile_sets,
+            N_values=args.N,
+            log_scale=args.log_scale
         )
 
         # Run experiments
         results = experiment_series.run_experiments()
 
         print("All experiments completed successfully!")
+
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON profiles: {e}")
+    except Exception as e:
+        print(f"Error running experiments: {e}")
+        traceback.print_exc()
+
