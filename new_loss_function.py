@@ -9,7 +9,6 @@ import json
 import argparse
 import pandas as pd
 import collections
-from sklearn.metrics import mean_squared_error as mse
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
@@ -330,8 +329,8 @@ class MultipleOptimizer:
         current_rateF = result['failure_rate']
         target_rateF = self.reference_models[profile_name]['failure_rate']
 
-        loss_pT = mse(np.log(current_pTimeN * target_rateT), np.log(target_pTimeN))
-        loss_pF = mse(np.log(current_pTime0 * target_rateF), np.log(target_pTime0))
+        loss_pT = np.mean((np.log(current_pTimeN * target_rateT) - np.log(target_pTimeN))**2)
+        loss_pF = np.mean((np.log(current_pTime0 * target_rateF) - np.log(target_pTime0))**2)
 
         loss = loss_pF + loss_pT
 
