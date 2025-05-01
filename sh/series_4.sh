@@ -11,7 +11,7 @@ source venv/bin/activate
 
 PROFILES_JSON="$(< /home/val2204/translocation-task/sh/profiles.json)"
 
-python /home/val2204/translocation-task/multiple_parameters.py \
+python /home/val2204/translocation-task/new_loss_function.py \
   --profiles_json "$PROFILES_JSON" \
   --N 50 --log_scale \
    > ${OUTFILE} 2> ${ERRFILE}

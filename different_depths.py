@@ -38,7 +38,8 @@ class CompareProfiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
                 name=profile['name'],
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -253,7 +254,8 @@ class MultipleOptimizer:
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
                 name=profile['name'],
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -307,7 +309,8 @@ class MultipleOptimizer:
         result = self.solver.run_fp(
             N_value, profile['type'], params,
             name=profile['name'],
-            log_scale=self.log_scale, exp_id=self.experiment_id)
+            # log_scale=self.log_scale, 
+            exp_id=self.experiment_id)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -433,7 +436,8 @@ class MultipleOptimizer:
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
                         name=profile_name,
-                        log_scale=self.log_scale, exp_id=self.experiment_id)
+                        # log_scale=self.log_scale, 
+                        exp_id=self.experiment_id)
 
                     # input("Press Enter to continue...")
 
@@ -461,7 +465,8 @@ class MultipleOptimizer:
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
                 name=profile_name,
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]

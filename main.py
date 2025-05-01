@@ -125,14 +125,16 @@ class FokkerPlanckSolver:
 
         return result
 
-    def run_fp(self, N, profile_type="linear", params=None, name="pr", log_scale=False, exp_id=None):
+    def run_fp(self, N, profile_type="linear", params=None, name="pr", 
+               # log_scale=False, 
+               exp_id=None):
         """
         Runs Fokker-Planck program with specified parameters
 
         Args:
             N: scalar
                 actual number of segments
-            profile_type: type of profile ('linear', ...)
+            profile_type: type of profile ('linear', 'gauss')
 
         Returns:
             Dictionary with simulation results
@@ -154,12 +156,14 @@ class FokkerPlanckSolver:
             print(f"Calculation for profile : {profile_type}, N={N}, params: {params} completed!")
 
         except subprocess.CalledProcessError as e:
-            print(f"Error running program for profule : {profile_type}, N={N}params: {params}: {e}")
+            print(f"Error running program for profule : {profile_type}, N={N}, params: {params}: {e}")
             print(f"Stderr: {e.stderr}")
             return None
 
         # Read results
-        result = self.read_pdf(N, name, exp_id, log_scale)
+        result = self.read_pdf(N, name, exp_id, 
+                               # log_scale
+                               )
         if result:
             result['N'] = int(N)
             result['profile_type'] = profile_type
@@ -167,7 +171,9 @@ class FokkerPlanckSolver:
 
         return result
 
-    def read_pdf(self, N, name="pr", exp_id=None, log_scale=False):
+    def read_pdf(self, N, name="pr", exp_id=None, 
+                 # log_scale=False
+                 ):
         """
         Reads results from output file
 
@@ -220,8 +226,8 @@ class FokkerPlanckSolver:
 
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
-                #if log_scale == True:
-                    #ptotal = np.log(ptotal)
+                # if log_scale == True:
+                    # ptotal = np.log(ptotal)
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)

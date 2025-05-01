@@ -9,6 +9,7 @@ import json
 import argparse
 import pandas as pd
 import collections
+from sklearn.metrics import mean_squared_error as mse
 
 job_id = os.getenv('SLURM_JOB_ID', 'local')
 
@@ -26,6 +27,7 @@ class CompareProfiles:
 
         # Initialize solver
         self.solver = FokkerPlanckSolver()
+
         self.profiles = profiles
         self.log_scale = log_scale
         self.experiment_id = experiment_id
@@ -38,7 +40,8 @@ class CompareProfiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
                 name=profile['name'],
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -92,8 +95,8 @@ class CompareProfiles:
                     total = data['ptotal']
                     if len(total.shape) > 1:
                         total = total.flatten()
-                    success = data['pTimeN']
-                    failure = data['pTime0']
+                    # success = data['pTimeN']
+                    # failure = data['pTime0']
 
                 axes[i].plot(dt, total, 'b-', linewidth=2,
                              label=f"{result['label']}")
@@ -117,10 +120,15 @@ class CompareProfiles:
         plt.close()
 
     def plot_multiple_success(self, results, N):
+
         if not results:
             print("No data to display")
             return
+        
         fig, ax = plt.subplots(figsize=(6, 4))
+
+        # Use data from the existing file
+
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -131,28 +139,36 @@ class CompareProfiles:
                     if success.ndim > 1:
                         success = success.flatten()
                 ax.plot(dt, success, linewidth=2, label=f"{result['label']}")
+
             except FileNotFoundError:
                 print(f"File {filename} not found!")
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
+
         ax.set_xlabel('t')
+
         if self.log_scale:
             ax.set_yscale('log')
             ax.set_ylabel('p_T (log scale)')
         else:
             ax.set_ylabel('p_T')
             ax.legend()
-        ax.legend()
+
+        # ax.legend()
         plt.tight_layout()
         imgname = f"success_pdfs_exp{self.experiment_id}_{N}"
         plt.savefig(os.path.join(images_folder, imgname))
         plt.close()
 
     def plot_multiple_failure(self, results, N):
+
         if not results:
             print("No data to display")
             return
+        
         fig, ax = plt.subplots(figsize=(6, 4))
+
+        # Use data from the existing file
         for result in results:
             filename = f"{result['name']}_exp{self.experiment_id}_N{N}_out.npz"
             filepath = os.path.join(data_folder, filename)
@@ -167,6 +183,7 @@ class CompareProfiles:
                 print(f"File {filename} not found!")
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
+
         ax.set_xlabel('t')
         if self.log_scale:
             ax.set_yscale('log')
@@ -174,7 +191,8 @@ class CompareProfiles:
         else:
             ax.set_ylabel('p_F')
             ax.legend()
-        ax.legend()
+
+        # ax.legend()
         plt.tight_layout()
         imgname = f"failure_pdfs_exp{self.experiment_id}_{N}"
         plt.savefig(os.path.join(images_folder, imgname))
@@ -200,8 +218,8 @@ class CompareProfiles:
                     total = data['ptotal']
                     if len(total.shape) > 1:
                         total = total.flatten()
-                    success = data['pTimeN']
-                    failure = data['pTime0']
+                    # success = data['pTimeN']
+                    # failure = data['pTime0']
 
                 ax.plot(dt, total, linewidth=2,
                         label=f"{result['label']}")
@@ -220,6 +238,7 @@ class CompareProfiles:
                 print(f"File {filename} not found!")
             except Exception as e:
                 print(f"Error processing file {filename}: {str(e)}")
+
         plt.tight_layout()
         imgname = f"compare_ptotal_exp{self.experiment_id}_N{N}"
         img_path = os.path.join(images_folder, imgname)
@@ -247,7 +266,8 @@ class MultipleOptimizer:
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
                 name=profile['name'],
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -294,14 +314,28 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
+            name=profile['name'], 
+            # log_scale=self.log_scale, 
+            exp_id=self.experiment_id)
+        
+        current_pTime0 = result['pTime0']
+        target_pTime0 = self.reference_models[profile_name]['pTime0']
 
-        current_value = result['ptotal']
-        target = self.reference_models[profile_name]['ptotal']
+        current_pTimeN = result['pTimeN']
+        target_pTimeN = self.reference_models[profile_name]['pTimeN']
 
-        difference = np.mean((current_value - target)**2)  # mse
+        current_rateT = result['success_rate']
+        target_rateT = self.reference_models[profile_name]['success_rate']
 
-        return np.array([[difference]])
+        current_rateF = result['failure_rate']
+        target_rateF = self.reference_models[profile_name]['failure_rate']
+
+        loss_pT = mse(np.log(current_pTimeN * target_rateT), np.log(target_pTimeN))
+        loss_pF = mse((np.log(current_pTime0 * target_rateF), np.log(target_pTime0)))
+
+        loss = loss_pF + loss_pT
+
+        return loss
 
     def run_multiple_opt(self, max_iter=10, initial_points=50,  plot_results=True):
 
@@ -435,7 +469,8 @@ class MultipleOptimizer:
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
                         name=profile_name,
-                        log_scale=self.log_scale, exp_id=self.experiment_id)
+                        # log_scale=self.log_scale, 
+                        exp_id=self.experiment_id)
 
                     # input("Press Enter to continue...")
 
@@ -466,7 +501,8 @@ class MultipleOptimizer:
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
                 name=profile_name,
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                # log_scale=self.log_scale, 
+                exp_id=self.experiment_id)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
