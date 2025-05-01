@@ -331,7 +331,7 @@ class MultipleOptimizer:
         target_rateF = self.reference_models[profile_name]['failure_rate']
 
         loss_pT = mse(np.log(current_pTimeN * target_rateT), np.log(target_pTimeN))
-        loss_pF = mse((np.log(current_pTime0 * target_rateF), np.log(target_pTime0)))
+        loss_pF = mse(np.log(current_pTime0 * target_rateF), np.log(target_pTime0))
 
         loss = loss_pF + loss_pT
 
