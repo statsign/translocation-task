@@ -13,8 +13,6 @@ class BayesOptimizer:
         self.N_ref = N_ref
         self.reference_model = None
 
-
-
     def compute_reference_model(self, name="pr"):
         print(f"Computed reference model for N_ref={self.N_ref}")
         self.reference_model = self.solver.run_fp(self.N_ref, name=name)
@@ -50,11 +48,10 @@ class BayesOptimizer:
 
         difference = np.mean((current_value - target)**2)  # mse
 
-
-
         return np.array([[difference]])
 
     def run_bayesopt(self, max_iter=5, initial_points=50, domain=(2, 500), plot_results=True):
+       
         """
         Run Bayesian optimization
 
@@ -64,6 +61,7 @@ class BayesOptimizer:
             domain: Range of N values to consider
             plot_results: Whether to plot results after optimization
         """
+
         if self.reference_model is None:
             success = self.compute_reference_model()
             if not success:

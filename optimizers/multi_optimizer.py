@@ -1,4 +1,4 @@
-from experimets.compare_profiles import CompareProfiles
+from experiments.compare_profiles import CompareProfiles
 import matplotlib.pyplot as plt
 import numpy as np
 import GPyOpt

@@ -6,7 +6,7 @@ from optimizers.multi_optimizer import MultipleOptimizer
 class ExperimentSeries:
     def __init__(self, solver, profile_sets, N_values=None, log_scale=False):
         """
-        Run a series of experiments with different profile sets
+        Runs a series of experiments with different profile sets
 
         Args:
             solver: FokkerPlanckSolver instance
@@ -21,7 +21,7 @@ class ExperimentSeries:
 
     def run_experiments(self, max_iter=5, initial_points=50):
         """
-        Run a series of experiments
+        Runs a series of experiments
 
         Args:
             max_iter: Maximum number of iterations for optimization
