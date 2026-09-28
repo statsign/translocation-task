@@ -1,0 +1,13 @@
+venv/
+.env
+*.png
+*.npz
+*__pycache__/
+*.txt
+*.exe
+images/
+data/
+*.egg-info
+logs/
+*.sh
+*.out
