@@ -2,4 +2,4 @@ The program generates free energy profiles of different types. Profile parameter
 
 The results are analysed using Bayesian optimisation. The surrogate model is Gaussian process regression (GPR), and the acquisition function is expected improvement (EI). The acquisition function and the evaluator type can be changed in `run_multiple_opt`. The optimiser is implemented in `multiple_bayesopt.py`. Reference models are computed for different polymer lengths and are used for comparison in the loss function.
 
-**Upcoming tasks:** Currently, the generated profiles are continuous functions. Instead, I will generate a realistic set of events to see how the program handles them.
+**Upcoming tasks:** Currently, the generated profiles are continuous functions. Instead, I will generate a realistic set of discrete data points (events) to see how the program handles them. The obtained results will then need to be characterized statistically.
