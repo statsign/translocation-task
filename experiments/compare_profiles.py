@@ -38,10 +38,10 @@ class CompareProfiles:
                 results.append(result)
 
         self.plot_multiple_pdf(results, N)
-        self.compare_multiple_pdf(results, N)
+        # self.compare_multiple_pdf(results, N)
 
-        self.plot_multiple_success(results, N)
-        self.plot_multiple_failure(results, N)
+        # self.plot_multiple_success(results, N)
+        # self.plot_multiple_failure(results, N)
 
         return results
 

@@ -41,7 +41,7 @@
     ],
       [
       {"type": "gauss", "params": {"A": -4}, "label": "Gaussian (A=-4, k=-0.1)", "name": "gaussA4"},
-      {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0, k=-0.1) (linear)", "name": "gaussA4k0"},
+      {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0, k=-0.1) (linear)", "name": "gaussA0k0"},
       {"type": "gauss", "params": {"A": 0, "k": -0.2}, "label": "Gaussian (A=0, k=-0.2) (linear)", "name": "gaussA0k0_2"}
     ],
     [
