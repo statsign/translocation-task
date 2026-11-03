@@ -127,7 +127,8 @@ class FokkerPlanckSolver:
 
     def run_fp(self, N, profile_type="linear", params=None, name="pr", 
                log_scale=False, 
-               exp_id=None):
+               exp_id=None,
+               save=True):
         """
         Runs Fokker-Planck program with specified parameters
 
@@ -145,24 +146,28 @@ class FokkerPlanckSolver:
 
         path = os.path.join(data_folder, "output")
 
-        # Run Fortran program
-        try:
-            subprocess.run(
-                [path],
-                capture_output=True,
-                text=True,
-                cwd=data_folder
-            )
-            logger.info(f"Calculation for profile : {profile_type}, N={N}, params: {params} completed!")
+        # if Fortran fails, the old file must not
+        # be read and saved under the name of the current profile
+        output_file = os.path.join(data_folder, "new_output.txt")
+        if os.path.exists(output_file):
+            os.remove(output_file)
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error running program for profile : {profile_type}, N={N}, params: {params}: {e}")
-            logger.error(f"Stderr: {e.stderr}")
+        proc = subprocess.run(
+            [path],
+            capture_output=True,
+            text=True,
+            cwd=data_folder
+        )
+        if proc.returncode != 0 or not os.path.exists(output_file):
+            logger.error(f"Fortran failed for profile : {profile_type}, N={N}, params: {params} "
+                         f"(return code {proc.returncode}): {proc.stderr.strip()}")
             return None
+        logger.info(f"Calculation for profile : {profile_type}, N={N}, params: {params} completed!")
 
-        # Read results
+        # Read the results
         result = self.read_pdf(N, name, exp_id, 
-                               # log_scale
+                               # log_scale,
+                               save=save
                                )
         if result:
             result['N'] = int(N)
@@ -172,7 +177,8 @@ class FokkerPlanckSolver:
         return result
 
     def read_pdf(self, N, name="pr", exp_id=None, 
-                 # log_scale=False
+                 # log_scale=False,
+                 save=True
                  ):
         """
         Reads results from output file
@@ -233,19 +239,20 @@ class FokkerPlanckSolver:
                 results['pTime0'] = np.array(pTime0)
                 results['ptotal'] = ptotal
 
+        
                 if exp_id is not None:
                     filename = name + f"_exp{exp_id}_N{N}_out.npz"
                 else:
                     filename = name + f"_N{N}_out.npz"
-
-
+                
                 filepath = os.path.join(data_folder, filename)
 
-                np.savez_compressed(filepath, success_rate=results['success_rate'],
-                    failure_rate=results["failure_rate"], success_time=results["success_time"], 
-                    failure_time=results["failure_time"], dt=results['dt'],
-                    pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
-                # makes an npz file with all the arrays for further usage
+                if save:
+                    np.savez_compressed(filepath, success_rate=results['success_rate'],
+                        failure_rate=results["failure_rate"], success_time=results["success_time"], 
+                        failure_time=results["failure_time"], dt=results['dt'],
+                        pTimeN=results['pTimeN'], pTime0=results['pTime0'], ptotal=results['ptotal'])
+                    # makes an npz file with all the arrays for further usage
 
                 return results
 
