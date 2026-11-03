@@ -103,7 +103,8 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id)
+            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id,
+            save=False)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
@@ -273,29 +274,32 @@ class MultipleOptimizer:
 
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
-                name=profile_name,
+                name=f"{profile_name}_opt",
                 log_scale=self.log_scale, exp_id=self.experiment_id)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
 
-                fig, ax = plt.subplots()
-                ax.plot(ref_model['dt'], ref_model['ptotal'],
-                        'b-', label=f'Reference')
-                ax.plot(best_result['dt'], best_result['ptotal'],
-                        'r--', label=f'Optimized')
-                ax.set_xlabel('t')
-                if self.log_scale == False:
-                    ax.set_ylabel('p(t)')
-                else:
-                    ax.set_ylabel('p(t) log scale')
-                    ax.set_yscale('log')
-                ax.set_title(
-                    f'{profile["label"]} (Experiment {self.experiment_id})')
-                ax.legend()
+                panels = [('ptotal', 'p(t) (total)'),
+                          ('pTimeN', 'p_T(t) (success)'),
+                          ('pTime0', 'p_F(t) (failure)')]
+                fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+                for ax, (key, title) in zip(axes, panels):
+                    plot_pdf(ax, ref_model['dt'], ref_model[key], self.log_scale,
+                             color='b', linestyle='-', label='Reference')
+                    plot_pdf(ax, best_result['dt'], best_result[key], self.log_scale,
+                             color='r', linestyle='--', label='Optimized')
+                    ax.set_title(title)
+                    ax.set_xlabel('t')
+                    ax.set_ylabel('log scale' if self.log_scale else 'p(t)')
+                    ax.legend()
+                fig.suptitle(
+                    f'{profile["label"]} (Experiment {self.experiment_id}) | '
+                    f'success rate: ref={ref_model["success_rate"]:.3g}, '
+                    f'opt={best_result["success_rate"]:.3g}')
                 plt.tight_layout()
 
-                imgname = f"current_opt_{profile['name']}_exp{self.experiment_id}"
+                imgname = f"current_opt_{profile['name']}_exp{self.experiment_id}_N{self.N_ref}"
                 img_folder = os.path.join(images_folder, "opt", f"exp{self.experiment_id}")
                 os.makedirs(img_folder, exist_ok=True)
                 img_path = os.path.join(img_folder, imgname)
