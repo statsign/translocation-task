@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 data_folder, images_folder = get_output_folders()
 
 class FokkerPlanckSolver:
+    PROFILE_DEFAULTS = {
+        "linear": {"slope": -0.01, "c": 0},
+        "gauss": {"A": -1, "mu": 20, "sigma": 3, "k": 0},
+    }
     def __init__(self):
         '''
         timesteps (Nt): actual number of timesteps
@@ -65,15 +69,13 @@ class FokkerPlanckSolver:
                 params = {}
 
             if profile_type == "linear":
-                slope = params.get('slope', -0.01)
-                c = params.get('c', 0)
+                p = {**self.PROFILE_DEFAULTS["linear"], **params}
+                slope, c = p['slope'], p['c']
                 return slope * i + c
 
             elif profile_type == "gauss":
-                A = params.get('A', -1)
-                mu = params.get('mu', 20)
-                sigma = params.get('sigma', 3)
-                k = params.get('k', 0)
+                p = {**self.PROFILE_DEFAULTS["gauss"], **params}
+                A, mu, sigma, k = p['A'], p['mu'], p['sigma'], p['k']
                 return i*k + A * np.exp(-((i - mu)**2) / (2 * sigma**2))
 
             # When A == 0, turns into linear
