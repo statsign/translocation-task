@@ -7,6 +7,7 @@ import GPyOpt
 import traceback
 import os
 from src.utils.path_utils import get_output_folders
+from src.utils.plot_utils import plot_pdf
 import logging
 logger = logging.getLogger(__name__) 
 
