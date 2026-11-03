@@ -43,7 +43,7 @@ class MultipleOptimizer:
             logger.info(f"Computing reference for {profile['label']}")
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
-                name=profile['name'],
+                name=f"{profile['name']}_ref",
                 log_scale=self.log_scale, exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
@@ -226,7 +226,7 @@ class MultipleOptimizer:
                         if param_idx < len(best_params):
                             optimized_params['sigma'] = best_params[param_idx]
                             param_idx += 1
-
+ 
                         if param_idx < len(best_params):
                             optimized_params['k'] = best_params[param_idx]
                             param_idx += 1
@@ -241,11 +241,13 @@ class MultipleOptimizer:
                         logger.info(
                             f"Optimization stopped: Best params: {best_params}")
                         break
-
+                    
+                    """
                     best_result = self.solver.run_fp(
                         self.N_ref, profile['type'], optimized_params,
                         name=profile_name,
                         log_scale=self.log_scale, exp_id=self.experiment_id)
+                    """
 
                     # input("Press Enter to continue...")
 
@@ -318,33 +320,36 @@ class MultipleOptimizer:
                 f"Optimization completed for {profile['label']} (Experiment {self.experiment_id}):")
             logger.info(f"Optimized params = {optimized_params}, Loss = {opt_loss}")
 
-        # Compare all optimized results
         if results and plot_results:
 
-            fig, axes = plt.subplots(nrows=3, ncols=1)
-            axes = axes.flatten()
-            fig.suptitle(
-                f"Different optimized profiles (Experiment {self.experiment_id}):")
-
-            for i, profile in enumerate(self.profiles):
-                profile_name = profile['name']
-                if profile_name in results and results[profile_name]['final_result']:
-                    result = results[profile_name]
-                    ref_model = self.reference_models[profile_name]
-                    axes[i].plot(result['final_result']['dt'], result['final_result']['ptotal'], 'g',
-                                 label=f"{profile['label']}")
-                    axes[i].plot(ref_model['dt'], ref_model['ptotal'],
-                                 'r', label=f'Reference', linestyle='--')
-                    axes[i].set_xlabel('t')
-                    if self.log_scale == False:
-                        axes[i].set_ylabel('p(t)')
-                    else:
-                        axes[i].set_ylabel('p(t) log scale')
-                        axes[i].set_yscale('log')
-                    axes[i].legend()
-
-            # plt.tight_layout()
-            imgname = f"opt_result_exp{self.experiment_id}_N{self.N_ref}"
+            panels = [('ptotal', 'p(t) (total)'),
+                        ('pTimeN', 'p_T(t) (success)'),
+                        ('pTime0', 'p_F(t) (failure)')]
+            n = len(self.profiles)
+            fig, axes = plt.subplots(n, 3, figsize=(15, 3.5 * n), squeeze=False)
+            fig.suptitle(f"Optimized profiles (Experiment {self.experiment_id}, N={self.N_ref})")
+ 
+            for row, prof in enumerate(self.profiles):
+                name = prof['name']
+                if name not in results or not results[name]['final_result']:
+                    continue
+                opt = results[name]['final_result']  
+                ref = self.reference_models[name]       
+                for col, (key, title) in enumerate(panels):
+                    ax = axes[row, col]
+                    plot_pdf(ax, ref['dt'], ref[key], self.log_scale,
+                             color='b', linestyle='-', label='Reference')
+                    plot_pdf(ax, opt['dt'], opt[key], self.log_scale,
+                             color='r', linestyle='--', label='Optimized')
+                    ax.set_title(title)
+                    ax.set_xlabel('t')
+                    ax.legend(fontsize=8)
+                axes[row, 0].set_ylabel(
+                    f"{prof['label']}\nsuccess: ref={ref['success_rate']:.3g}, "
+                    f"opt={opt['success_rate']:.3g}", fontsize=9)
+                
+            plt.tight_layout()
+            imgname = f"opt_result_{profile['name']}_exp{self.experiment_id}_N{self.N_ref}"
             img_folder = os.path.join(images_folder, "opt", f"exp{self.experiment_id}")
             os.makedirs(img_folder, exist_ok=True)
             img_path = os.path.join(img_folder, imgname)
