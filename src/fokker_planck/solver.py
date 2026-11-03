@@ -36,6 +36,10 @@ class FokkerPlanckSolver:
 
         source_file = os.path.join(os.path.dirname(__file__), "fp.f90")
         output_path = os.path.join(data_folder, "output")
+
+        if os.path.exists(output_path):
+            os.remove(output_path)
+
         try:
             compile_process = subprocess.run(
                 ["gfortran", source_file, "-o", output_path],
