@@ -20,9 +20,9 @@
       {"type": "gauss", "params": {"A": -4}, "label": "Gaussain (A=-4)", "name": "gaussA4"}
     ],
     [
-      {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "gausspA1"},
-      {"type": "gauss", "params": {"A": 3}, "label": "Gaussian (A=3)", "name": "gausspA3"},
-      {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0)", "name": "gaussA0"}
+      {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "gaussA1"},
+      {"type": "gauss", "params": {"A": 3}, "label": "Gaussian (A=3)", "name": "gaussA3"},
+      {"type": "gauss", "params": {"A": 2}, "label": "Gaussian (A=2)", "name": "gaussA2"}
     ],
     [
       {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1)", "name": "gausspA1"},
@@ -41,8 +41,8 @@
     ],
       [
       {"type": "gauss", "params": {"A": -4}, "label": "Gaussian (A=-4, k=-0.1)", "name": "gaussA4"},
-      {"type": "gauss", "params": {"A": 0}, "label": "Gaussian (A=0, k=-0.1) (linear)", "name": "gaussA0k0"},
-      {"type": "gauss", "params": {"A": 0, "k": -0.2}, "label": "Gaussian (A=0, k=-0.2) (linear)", "name": "gaussA0k0_2"}
+      {"type": "gauss", "params": {"A": 1}, "label": "Gaussian (A=1, k=-0.1) (linear)", "name": "gaussA1k0"},
+      {"type": "gauss", "params": {"A": 2, "k": -0.2}, "label": "Gaussian (A=2, k=-0.2) (linear)", "name": "gaussA2k0_2"}
     ],
     [
       {"type": "linear", "params": {"slope": -0.1}, "label": "Linear (slope=-0.1)", "name": "linear0_1"},
@@ -60,8 +60,8 @@
       {"type": "gauss", "params": {"A": -1, "k": -0.2}, "label": "Gaussain (A=-1, k=-0.2)", "name": "gaussA1k0_2"}
     ],
     [
-      {"type": "gauss", "params": {"A": -1, "sigma": 2}, "label": "Gaussian (A=-1, sigma=2)", "name": "gaussA1sigma2"},
-      {"type": "gauss", "params": {"A": -1, "sigma": 3}, "label": "Gaussian (A=-1, sigma=3)", "name": "gaussA1sigma3"},
+      {"type": "gauss", "params": {"A": -1, "sigma": 5}, "label": "Gaussian (A=-1, sigma=5)", "name": "gaussA1sigma5"},
+      {"type": "gauss", "params": {"A": -1, "sigma": 6}, "label": "Gaussian (A=-1, sigma=6)", "name": "gaussA1sigma6"},
       {"type": "gauss", "params": {"A": -1, "sigma": 4}, "label": "Gaussain (A=-1, sigma=4)", "name": "gaussA1sigma4"}
     ]
   ]
