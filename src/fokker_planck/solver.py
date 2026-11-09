@@ -13,21 +13,21 @@ data_folder, images_folder = get_output_folders()
 class FokkerPlanckSolver:
     PROFILE_DEFAULTS = {
         "linear": {"slope": -0.01, "c": 0},
-        "gauss": {"A": -1, "mu": 20, "sigma": 3, "k": 0},
+        "gauss": {"A": -1, "mu": 20, "sigma": 5, "k": 0},
     }
     def __init__(self):
         '''
         timesteps (Nt): actual number of timesteps
         dt: timestep (conversion into real units discussed)
         timedisplay: number of timesteps displayed in output file
-        intdisplay: output intarval
+        intdisplay: output interval
         '''
 
         # Input file parameters
         self.timesteps = 100000
         self.dt = 0.01
-        self.timedisplay = 10000  
-        self.intdisplay = 10
+        self.timedisplay = 100000  
+        self.intdisplay = 1
 
         self.compile_fortran()
 
