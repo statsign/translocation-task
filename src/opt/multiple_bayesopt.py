@@ -182,7 +182,7 @@ class MultipleOptimizer:
                     {
                         "name": "sigma",
                         "type": "continuous",
-                        "domain": (0.1, 10),
+                        "domain": (4, 6),
                         "dimensionality": 1,
                     },
                     {"name": "k",
@@ -201,12 +201,26 @@ class MultipleOptimizer:
             initial_design = GPyOpt.experiment_design.initial_design(
                 "random", feasible_region, initial_points)
 
+
+            # evaluate MSE on the initial design ourselves to choose eps
+
+            mse_init = np.array([self.mse(x, profile_name) for x in initial_design])
+            eps = self.choose_eps(mse_init)
+            self.eps_by_profile[profile_name] = eps
+            Y_init = np.array([self.transform(m, profile_name) for m in mse_init])
+            bad = ~np.isfinite(Y_init)
+            Y_init[bad] = np.nanmax(Y_init[~bad])
+            self.worst_y[profile_name] = Y_init.max()
+            Y_init = Y_init.reshape(-1, 1)
+            logger.info(f"eps = {eps:.3e}, MSE init: min={np.nanmin(mse_init):.3e}, "
+                        f"median={np.nanmedian(mse_init):.3e}")
+
             # Setup optimizer components
             objective = GPyOpt.core.task.SingleObjective(
                 lambda theta: self.loss_function(theta, profile_name))
 
             model = GPyOpt.models.GPModel(
-                exact_feval=True,
+                exact_feval=False,
                 optimize_restarts=10,
                 verbose=False
             )
@@ -228,7 +242,8 @@ class MultipleOptimizer:
                 acquisition,
                 evaluator,
                 initial_design,
-                normalize_Y=False,
+                Y_init=Y_init,
+                normalize_Y=True,
             )
 
             max_time = None
