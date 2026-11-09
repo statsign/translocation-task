@@ -29,8 +29,15 @@ class MultipleOptimizer:
         self.solver = solver
         self.multiple = CompareProfiles(profiles=profiles)
         self.profiles = profiles
-        self.log_scale = log_scale
         self.experiment_id = experiment_id
+
+        # Log-transform of the loss: y = log10(MSE + eps)
+        self.log_loss = log_loss
+        self.eps = eps # if None, chosen from the initial design
+        self.eps_rel = eps_rel # eps = eps_rel * median(MSE over initial points)
+        self.eps_floor = eps_floor # lower bound: rounding noise of the Fortran output (e13.6)
+        self.eps_by_profile = {} # eps per profile: MSE scale differs between profiles
+        self.worst_y = {} # worst y seen so far, per profile; used as a penalty for failed solver runs
 
     def compute_reference_models(self):
         """
@@ -61,9 +68,8 @@ class MultipleOptimizer:
                 return False
         return True
 
-    def loss_function(self, theta, profile_name):
+    def mse(self, theta, profile_name):
         """
-        Loss function for Bayesian optimization
 
         This function does mse for
             ptotal = pTime0 * failure_rate + pTimeN * success_rate
@@ -105,15 +111,39 @@ class MultipleOptimizer:
         # Run Fortran program for this params
         result = self.solver.run_fp(
             N_value, profile['type'], params,
-            name=profile['name'], log_scale=self.log_scale, exp_id=self.experiment_id,
+            name=profile['name'], exp_id=self.experiment_id,
             save=False)
 
         current_value = result['ptotal']
         target = self.reference_models[profile_name]['ptotal']
 
-        difference = np.mean((current_value - target)**2)  # mse
+        return float(np.mean((current_value - target)**2))
 
-        return np.array([[difference]])
+    def transform(self, mse, profile_name):
+        """MSE -> value seen by the GP"""
+        if not self.log_loss:
+            return mse
+        return np.log10(mse + self.eps_by_profile[profile_name])
+
+    def inverse_transform(self, y, profile_name):
+        """GP value -> MSE (for logging and the stopping criterion)"""
+        if not self.log_loss:
+            return y
+        return 10.0**y - self.eps_by_profile[profile_name]
+
+    def choose_eps(self, mse_init):
+        if self.eps is not None:
+            return self.eps
+        finite = mse_init[np.isfinite(mse_init)]
+        return max(self.eps_rel * np.median(finite), self.eps_floor)
+
+    def loss_function(self, theta, profile_name):
+        mse = self.mse(theta, profile_name)
+        y = self.transform(mse, profile_name)
+        if not np.isfinite(y): # solver failed: penalty = worst value seen so far      
+            y = self.worst_y.get(profile_name, 0.0)
+        self.worst_y[profile_name] = max(self.worst_y.get(profile_name, y), y)
+        return np.array([[y]])
 
     def run_multiple_opt(self, max_iter=10, initial_points=50,  plot_results=True):
 
@@ -234,21 +264,16 @@ class MultipleOptimizer:
 
                     # Print the current best result
                     logger.info(
-                        f"Experiment: {self.experiment_id}, Iteration: {(i + 1) * 5}")
-                    logger.info(f"Objective function value: {opt_loss}")
+                        f"Experiment: {self.experiment_id}, rounds: {i + 1}, "
+                        f"evaluations: {len(bo.Y)}")
+                    best_mse = self.inverse_transform(opt_loss, profile_name)
+                    logger.info(f"Objective: y={opt_loss:.4f}, MSE={best_mse:.3e}")
                     logger.info(f"Parameters: {optimized_params}")
 
-                    if opt_loss == 0:
+                    if best_mse <= eps: # below the level where differences are meaningful
                         logger.info(
                             f"Optimization stopped: Best params: {best_params}")
                         break
-                    
-                    """
-                    best_result = self.solver.run_fp(
-                        self.N_ref, profile['type'], optimized_params,
-                        name=profile_name,
-                        log_scale=self.log_scale, exp_id=self.experiment_id)
-                    """
 
                     # input("Press Enter to continue...")
 
@@ -312,7 +337,8 @@ class MultipleOptimizer:
 
             results[profile_name] = {
                 'best_params': optimized_params,
-                'best_loss': opt_loss,
+                'best_loss': self.inverse_transform(opt_loss, profile_name),  # MSE
+                'best_y': opt_loss,    
                 'bo_object': bo,
                 'final_result': best_result
             }
