@@ -17,13 +17,12 @@ def init_plot_style():
     plt.rc('axes', prop_cycle=style_cycler)
 
 
-def plot_pdf(ax, t, p, log_scale=False, floor=LOG_FLOOR, **kwargs):
+def plot_pdf(ax, t, p, floor=LOG_FLOOR, **kwargs):
     """
     Settings for pdf plots (optimization results)
     """
     t = np.asarray(t).ravel()
     p = np.asarray(p, dtype=float).ravel()
-    if log_scale:
-        p = np.where(p > floor, p, np.nan) 
-        ax.set_yscale('log')
+    p = np.where(p > floor, p, np.nan) 
+    ax.set_yscale('log')
     return ax.plot(t, p, **kwargs)

@@ -21,8 +21,7 @@ def main():
     experiment = ExperimentSeries(
         solver,
         profile_sets=load_profile_sets(get_json_path()),
-        N_values=args.N,
-        log_scale=args.log_scale
+        N_values=args.N
     )
     experiment.run_experiments(
         max_iter=args.max_iter,

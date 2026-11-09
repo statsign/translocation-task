@@ -12,12 +12,11 @@ logger = logging.getLogger(__name__)
 data_folder, images_folder = get_output_folders()
 
 class CompareProfiles:
-    def __init__(self, profiles, log_scale=False, experiment_id=1):
+    def __init__(self, profiles,  experiment_id=1):
 
         # Initialize solver
         self.solver = FokkerPlanckSolver()
         self.profiles = profiles
-        self.log_scale = log_scale
         self.experiment_id = experiment_id
 
         init_plot_style()
@@ -30,7 +29,7 @@ class CompareProfiles:
             result = self.solver.run_fp(
                 N, profile_type=profile['type'], params=profile['params'],
                 name=profile['name'],
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -91,11 +90,8 @@ class CompareProfiles:
                 axes[i].plot(dt, total, 'b-', linewidth=2,
                              label=f"{result['label']}")
                 axes[i].set_xlabel('t')
-                if self.log_scale == False:
-                    axes[i].set_ylabel('p(t)')
-                else:
-                    axes[i].set_ylabel('p(t) log scale')
-                    axes[i].set_yscale('log')
+                axes[i].set_ylabel('p(t) log scale')
+                axes[i].set_yscale('log')
                 axes[i].legend()
 
             except FileNotFoundError:
@@ -131,12 +127,8 @@ class CompareProfiles:
             except Exception as e:
                 logger.error(f"Error processing file {filename}: {str(e)}")
         ax.set_xlabel('t')
-        if self.log_scale:
-            ax.set_yscale('log')
-            ax.set_ylabel('p_T (log scale)')
-        else:
-            ax.set_ylabel('p_T')
-            ax.legend()
+        ax.set_yscale('log')
+        ax.set_ylabel('p_T (log scale)')
         ax.legend()
         plt.tight_layout()
         imgname = f"success_pdfs_exp{self.experiment_id}_{N}"
@@ -166,12 +158,8 @@ class CompareProfiles:
             except Exception as e:
                 logger.error(f"Error processing file {filename}: {str(e)}")
         ax.set_xlabel('t')
-        if self.log_scale:
-            ax.set_yscale('log')
-            ax.set_ylabel('p_F (log scale)')
-        else:
-            ax.set_ylabel('p_F')
-            ax.legend()
+        ax.set_yscale('log')
+        ax.set_ylabel('p_F (log scale)')
         ax.legend()
         plt.tight_layout()
         imgname = f"failure_pdfs_exp{self.experiment_id}_{N}"
@@ -203,13 +191,9 @@ class CompareProfiles:
                 ax.plot(dt, total, linewidth=2,
                         label=f"{result['label']}")
                 ax.set_xlabel('t')
-                if self.log_scale == False:
-                    ax.set_ylabel('p(t)')
-                    ax.autoscale()
-                else:
-                    ax.set_ylabel('p(t) log scale')
-                    ax.set_yscale('log')
-                    ax.set_ylim(1e-15, 0)
+                ax.set_ylabel('p(t) log scale')
+                ax.set_yscale('log')
+                ax.set_ylim(bottom=1e-15)
 
                 ax.legend()
 

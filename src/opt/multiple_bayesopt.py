@@ -16,7 +16,8 @@ data_folder, images_folder = get_output_folders()
 
 
 class MultipleOptimizer:
-    def __init__(self, solver, profiles, N_ref=100, log_scale=False, experiment_id=1):
+    def __init__(self, solver, profiles, N_ref=100, experiment_id=1,
+                 log_loss=True, eps=None, eps_rel=1e-6, eps_floor=1e-16):
         """
         Args:
             solver: FokkerPlanckSolver instance
@@ -44,7 +45,7 @@ class MultipleOptimizer:
             result = self.solver.run_fp(
                 self.N_ref, profile['type'], profile['params'],
                 name=f"{profile['name']}_ref",
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                exp_id=self.experiment_id)
             if result:
                 result['label'] = profile['label']
                 result['name'] = profile['name']
@@ -278,7 +279,7 @@ class MultipleOptimizer:
             best_result = self.solver.run_fp(
                 self.N_ref, profile['type'], optimized_params,
                 name=f"{profile_name}_opt",
-                log_scale=self.log_scale, exp_id=self.experiment_id)
+                exp_id=self.experiment_id)
 
             if plot_results and best_result:
                 ref_model = self.reference_models[profile_name]
@@ -288,13 +289,13 @@ class MultipleOptimizer:
                           ('pTime0', 'p_F(t) (failure)')]
                 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
                 for ax, (key, title) in zip(axes, panels):
-                    plot_pdf(ax, ref_model['dt'], ref_model[key], self.log_scale,
+                    plot_pdf(ax, ref_model['dt'], ref_model[key], 
                              color='b', linestyle='-', label='Reference')
-                    plot_pdf(ax, best_result['dt'], best_result[key], self.log_scale,
+                    plot_pdf(ax, best_result['dt'], best_result[key], 
                              color='r', linestyle='--', label='Optimized')
                     ax.set_title(title)
                     ax.set_xlabel('t')
-                    ax.set_ylabel('log scale' if self.log_scale else 'p(t)')
+                    ax.set_ylabel('p(t)')
                     ax.legend()
                 fig.suptitle(
                     f'{profile["label"]} (Experiment {self.experiment_id}) | '
@@ -337,9 +338,9 @@ class MultipleOptimizer:
                 ref = self.reference_models[name]       
                 for col, (key, title) in enumerate(panels):
                     ax = axes[row, col]
-                    plot_pdf(ax, ref['dt'], ref[key], self.log_scale,
+                    plot_pdf(ax, ref['dt'], ref[key], 
                              color='b', linestyle='-', label='Reference')
-                    plot_pdf(ax, opt['dt'], opt[key], self.log_scale,
+                    plot_pdf(ax, opt['dt'], opt[key],
                              color='r', linestyle='--', label='Optimized')
                     ax.set_title(title)
                     ax.set_xlabel('t')

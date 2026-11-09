@@ -130,7 +130,6 @@ class FokkerPlanckSolver:
         return result
 
     def run_fp(self, N, profile_type="linear", params=None, name="pr", 
-               log_scale=False, 
                exp_id=None,
                save=True):
         """
@@ -170,7 +169,6 @@ class FokkerPlanckSolver:
 
         # Read the results
         result = self.read_pdf(N, name, exp_id, 
-                               # log_scale,
                                save=save
                                )
         if result:
@@ -181,7 +179,6 @@ class FokkerPlanckSolver:
         return result
 
     def read_pdf(self, N, name="pr", exp_id=None, 
-                 # log_scale=False,
                  save=True
                  ):
         """
@@ -234,8 +231,6 @@ class FokkerPlanckSolver:
 
                 ptotal = pTime0 * results['failure_rate'] + \
                     pTimeN * results['success_rate']
-                # if log_scale == True:
-                    # ptotal = np.log(ptotal)
                 ptotal = ptotal.reshape((len(ptotal), 1))
 
                 results['dt'] = np.array(dt)

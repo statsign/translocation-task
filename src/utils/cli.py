@@ -14,13 +14,6 @@ def parse_experiment_args():
             default=[50],
             help="Set the value of N (default: 50)"
         )
-
-    parser.add_argument(
-            "--log_scale",
-            action="store_true", # boolean
-            default=False,
-            help="Use logarithmic scale"
-        )
     
     parser.add_argument(
             "--max_iter",

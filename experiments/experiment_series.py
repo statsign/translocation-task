@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 class ExperimentSeries:
-    def __init__(self, solver, profile_sets, N_values=None, log_scale=False):
+    def __init__(self, solver, profile_sets, N_values=None):
         """
         Runs a series of experiments with different profile sets
 
@@ -13,12 +13,10 @@ class ExperimentSeries:
             solver: FokkerPlanckSolver instance
             profile_sets: List of profile sets
             N_values: List of N values to use in experiments (if None, use default N=50)
-            log_scale: Boolean, whether to use log scale
         """
         self.solver = solver
         self.profile_sets = profile_sets
         self.N_values = N_values if N_values else [50]
-        self.log_scale = log_scale
 
     def run_experiments(self, max_iter=5, initial_points=50):
         """
@@ -40,14 +38,14 @@ class ExperimentSeries:
 
                 # Initialize comparison
                 compare = CompareProfiles(
-                    profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
+                    profiles=profiles, experiment_id=exp_id)
 
                 # Initial results
                 fp_results = compare.run_multiple_simulations(N)
 
                 # Initialize optimizer
                 optimizer = MultipleOptimizer(
-                    self.solver, N_ref=N, profiles=profiles, log_scale=self.log_scale, experiment_id=exp_id)
+                    self.solver, N_ref=N, profiles=profiles, experiment_id=exp_id)
 
                 # Compute reference models
                 success = optimizer.compute_reference_models()
